@@ -93,7 +93,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'myfaraday',
         'USER': 'root',
-        'PASSWORD': 'Basudh286Hid8ncHdw9!nfj*',
+        'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '3306',
         'TIME_ZONE': 'Asia/Kolkata'
