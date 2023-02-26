@@ -1,4 +1,5 @@
 from django import forms
+from authentication.models import CustomFirebaseUser
 
 
 class LoginForm(forms.Form):
@@ -42,20 +43,21 @@ class SignupForm(forms.Form):
         )
     )
 
-    mobile_number = forms.CharField(
+    phone_number = forms.CharField(
         max_length=10,
         required=True
     )
 
-    password = forms.CharField(
-        max_length=254,
-        required=True,
-        widget=forms.PasswordInput(
-            attrs={
-                'class': 'form-control'
-            }
-        )
-    )
+    class Meta:
+        object = CustomFirebaseUser
+        fields = {
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+            'password1',
+            'password2'
+        }
 
 
 class ResetPasswordForm(forms.Form):

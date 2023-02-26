@@ -32,7 +32,7 @@ urlpatterns = [
     path(
         '__/action?mode=verifyEmail&oobCode=<str:oobCode>',
         email_verification_view,
-        name="verify-email"
+        name="authentication-email"
     ),
     path(
         '__/action?mode=resetPassword&oobCode=<str:oobCode>',

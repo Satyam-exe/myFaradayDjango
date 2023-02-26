@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 import os
 
@@ -42,10 +42,12 @@ INSTALLED_APPS = [
     # third-party packages
     'crispy_forms',
     'crispy_bootstrap5',
-    'pyrebase',
+    'firebase_admin',
+    'tailwind',
+    'theme',
 
     # self-made
-    'verify',
+    'authentication',
     'pages',
     'request',
     'profiles',
@@ -76,7 +78,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'verify.context_processors.user_context'
             ],
         },
     },
@@ -145,7 +146,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTHENTICATION_BACKENDS = [
 
-    'verify.firebase_auth.FirebaseAuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
 
 ]
@@ -155,8 +155,35 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-AUTH_USER_MODEL = 'verify.FirebaseUser'
-
 FIREBASE_API_KEY = 'AIzaSyD-V1cl7LkMt-4Pq_N7dkfMnrNhw1vXS28'
 
 LOGIN_URL = "/auth/login/"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'authentication.authentication.FirebaseAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
+TAILWIND_APP_NAME = 'theme'
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'satyam2007v@gmail.com'
+EMAIL_HOST_PASSWORD = 'RadianiteBlich99'
