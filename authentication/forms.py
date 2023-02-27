@@ -1,85 +1,11 @@
 from django import forms
-from authentication.models import CustomFirebaseUser
+from .firebase_auth import create_firebase_user
+from .models import CustomFirebaseUser
 
 
-class LoginForm(forms.Form):
-    email = forms.EmailField(
-        label='Email'
-    )
-    password = forms.CharField(
-        label='Password',
-        widget=forms.PasswordInput
-    )
-
-
-class SignupForm(forms.Form):
-    first_name = forms.CharField(
-        max_length=30,
-        required=True,
-        widget=forms.TextInput(
-             attrs={
-                 'class': 'form-control'
-             }
-        )
-    )
-
-    last_name = forms.CharField(
-        max_length=30,
-        required=True,
-        widget=forms.TextInput(
-            attrs={
-                'class': 'form-control'
-            }
-        )
-    )
-
-    email = forms.EmailField(
-        max_length=254,
-        required=True,
-        widget=forms.EmailInput(
-            attrs={
-                'class': 'form-control'
-            }
-        )
-    )
-
-    phone_number = forms.CharField(
-        max_length=10,
-        required=True
-    )
+class SignupForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
 
     class Meta:
-        object = CustomFirebaseUser
-        fields = {
-            'first_name',
-            'last_name',
-            'email',
-            'phone_number',
-            'password1',
-            'password2'
-        }
-
-
-class ResetPasswordForm(forms.Form):
-    email = forms.EmailField(
-        max_length=254,
-        widget=forms.EmailInput(
-            attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter your email address'
-            }
-        )
-    )
-
-
-class ConfirmResetPasswordForm(forms.Form):
-    password = forms.CharField(
-        max_length=254,
-        required=True,
-        widget=forms.PasswordInput(
-            attrs={
-                'class': 'form-control',
-                'placeholder': 'Please enter your new password'
-            }
-        )
-    )
+        model = CustomFirebaseUser
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'password']
