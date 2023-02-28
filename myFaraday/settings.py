@@ -152,7 +152,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTHENTICATION_BACKENDS = [
 
     'django.contrib.auth.backends.ModelBackend',
-    'authentication.backends.FirebaseAuthenticationBackend',
 
 ]
 
@@ -160,7 +159,7 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-FIREBASE_API_KEY = 'AIzaSyD-V1cl7LkMt-4Pq_N7dkfMnrNhw1vXS28'
+FIREBASE_API_KEY = os.environ.get('FIREBASE_API_KEY')
 
 LOGIN_URL = "/auth/login/"
 
