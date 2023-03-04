@@ -2,6 +2,7 @@ import pytz
 import requests
 import rest_framework.authentication
 
+from api.serializers import SignupSerializer
 from .firebase_auth import send_email_verification_link
 from .firebase_auth import send_password_reset_email
 from .firebase_auth import get_firebase_user
@@ -28,56 +29,23 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import AllowAny
 
 
-@transaction.atomic
+@api_view(['POST'])
+@permission_classes(AllowAny)
 def user_sign_up_view(request):
     if request.method == 'POST':
-        form = SignupForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data.get('email')
-            password = form.cleaned_data.get('password')
-            first_name = form.cleaned_data.get('first_name')
-            last_name = form.cleaned_data.get('last_name')
-            phone_number = str(f"{'+91'}{form.cleaned_data.get('phone_number')}")
-            try:
-                _user = create_firebase_user(
-                    email=email,
-                    password=password,
-                    display_name=f'{first_name} {last_name}',
-                    phone_number=phone_number
-                )
-                CustomFirebaseUser.objects.create_user(
-                    firebase_uid=_user.uid,
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    phone_number=phone_number,
-                    password=password
-                )
-                custom_claims = {
-                    'last_log_in': None,
-                    'last_activity': None,
-                    'is_active': True
-                }
-                auth.set_custom_user_claims(_user.uid, custom_claims)
-                auth.update_user(_user.uid)
-                # Save user data to the database
-                send_email_verification_link(request, email)
-                return redirect(reverse('home'))
-            except auth.EmailAlreadyExistsError:
-                messages.error(request, 'Error: The email already exists')
-            except auth.PhoneNumberAlreadyExistsError:
-                messages.error(request, 'Error: The phone number already exists')
-            except auth.UidAlreadyExistsError:
-                messages.error(request, 'Error: The User ID already exists')
+        serializer = SignupSerializer(data=request.POST)
+        if serializer.is_valid():
+            serializer.save()
+            return redirect('home')
         else:
-            messages.error(request, 'Please fill up all the fields appropriately')
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     else:
-        form = SignupForm()
-    return render(request=request, template_name='signup.html', context={'form': form})
+        serializer = SignupSerializer()
+    return render(request, 'signup.html', {'serializer': serializer})
 
 
 def user_login_view(request):

@@ -7,10 +7,10 @@ from django.utils.translation import gettext_lazy as _
 class CustomFirebaseUser(AbstractBaseUser):
     firebase_uid = models.CharField(max_length=255, unique=True, primary_key=True, verbose_name=_('Firebase User ID'))
     email = models.EmailField(unique=True, verbose_name=_('Email Address'))
-    password = models.CharField(max_length=128, verbose_name=_('Password'))
     first_name = models.CharField(max_length=30, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, verbose_name=_('Last Name'))
     phone_number = models.CharField(max_length=15, unique=True, verbose_name=_('Phone Number'))
+    signed_up = models.DateTimeField(verbose_name=_('Signed Up'))
     last_login = models.DateTimeField(verbose_name=_('Last Login'), blank=True, null=True)
     last_activity = models.DateTimeField(verbose_name=_('Last Activity'), blank=True, null=True)
     is_active = models.BooleanField(default=True)

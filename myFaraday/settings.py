@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'firebase_admin',
     'tailwind',
     'theme',
+    'rest_framework',
 
     # self-made
     'authentication',
@@ -170,9 +171,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'authentication.authentication.FirebaseAuthentication',
     ),
-    'DEFAULT_PERMISSION_CLASSES': [
+    'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-    ],
+    ),
 }
 
 SIMPLE_JWT = {
