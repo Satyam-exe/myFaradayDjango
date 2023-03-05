@@ -2,8 +2,6 @@
 
 {% load crispy_forms_tags %}
 
-{% load rest_framework %}
-
 {% block head_title %}Sign Up{% endblock %}
 
 {% block body %}
@@ -12,7 +10,7 @@
     <h2>Sign Up</h2>
     <form method="POST">
       {% csrf_token %}
-      {% render_form serializer template_pack='rest_framework/vertical' %}
+      {% form|crispy %}
       <button type="submit">Sign Up</button>
     </form>
 

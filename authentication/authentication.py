@@ -6,7 +6,7 @@ import pytz
 from django.contrib.auth import get_user_model
 from firebase_admin import credentials
 from rest_framework.authentication import BaseAuthentication
-from firebase_admin import auth
+from firebase_admin import auth, db
 from rest_framework.exceptions import AuthenticationFailed
 from .models import CustomFirebaseUser
 from dotenv import load_dotenv
@@ -32,7 +32,9 @@ cred = credentials.Certificate({
   "client_x509_cert_url": os.environ.get('firebase_client_x509_cert_url')
 })
 
-default_app = firebase_admin.initialize_app(cred)
+default_app = firebase_admin.initialize_app(cred, {'database_url': os.environ.get('FIREBASE_DATABASE_URL')})
+
+ref = db.reference('/')
 
 User = get_user_model()
 
