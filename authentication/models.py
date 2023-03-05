@@ -30,5 +30,5 @@ class CustomFirebaseUser(AbstractBaseUser):
         return self.is_superuser
 
     class Meta:
-        verbose_name = 'Custom Firebase User'
-        verbose_name_plural = 'Custom Firebase Users'
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'

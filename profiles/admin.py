@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import ProfileModel
+from .models import Profile
 
 
 class ProfileModelAdmin(admin.ModelAdmin):
     list_display = (
-        'firebase_uid',
+        'user',
         'first_name',
         'last_name',
         'date_of_birth',
@@ -22,4 +22,4 @@ class ProfileModelAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(ProfileModel, ProfileModelAdmin)
+admin.site.register(Profile, ProfileModelAdmin)

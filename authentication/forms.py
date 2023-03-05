@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import password_validation
 
 
-class SignUpForm(forms.ModelForm):
+class SignUpWithEmailAndPasswordForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
 
     class Meta:
@@ -14,9 +14,9 @@ class SignUpForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'phone_number', 'password']
 
 
-class SignInForm(AuthenticationForm):
+class SignInWithEmailAndPasswordForm(AuthenticationForm):
     class Meta:
-        fields = ['email', 'password']
+        fields = ['email', 'passwor1d']
 
 
 class PasswordResetForm(forms.Form):

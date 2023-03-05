@@ -5,7 +5,7 @@ from .models import RequestModel
 class RequestModelAdmin(admin.ModelAdmin):
     list_display = (
         'request_id',
-        'firebase_uid',
+        'user',
         'name',
         'time_of_request',
         'address',

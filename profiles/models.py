@@ -24,8 +24,8 @@ COUNTRIES_CHOICES = ast.literal_eval(
 
 
 class Profile(models.Model):
-    firebase_uid = models.OneToOneField(CustomFirebaseUser, on_delete=models.CASCADE, primary_key=True,
-                                        verbose_name=_('Firebase User ID'))
+    user = models.OneToOneField(CustomFirebaseUser, on_delete=models.CASCADE, primary_key=True,
+                                verbose_name=_('Firebase User ID'), db_column='firebase_uid')
     first_name = models.CharField(max_length=30, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, verbose_name=_('Last Name'))
     email = models.EmailField(unique=True, verbose_name=_('Email Address'))
@@ -36,7 +36,7 @@ class Profile(models.Model):
     address2 = models.CharField(max_length=50, verbose_name=_('Address 2'), null=True, blank=True)
     city = models.CharField(max_length=50, verbose_name=_('City'), null=True, blank=True)
     pincode = models.CharField(verbose_name=_('Postal Code'), max_length=6, null=True, blank=True)
-    state = models.CharField(max_length=50, verbose_name=_('State/Territory'))
+    state = models.CharField(max_length=50, verbose_name=_('State/Territory'), null=True, blank=True)
     country = models.CharField(max_length=2, verbose_name=_('Country'), choices=COUNTRIES_CHOICES, null=True,
                                blank=True)
     longitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Longitude'), null=True,

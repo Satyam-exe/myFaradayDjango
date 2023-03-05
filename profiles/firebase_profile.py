@@ -1,7 +1,7 @@
 from django.contrib import messages
 from firebase_admin import auth, exceptions
 
-from authentication.authentication import ref
+from authentication.firebase_config import ref
 
 from authentication.models import CustomFirebaseUser
 
@@ -36,16 +36,16 @@ def update_profile(
             })
             CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid')).update(first_name=first_name)
             CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(first_name=first_name)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(first_name=first_name)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if last_name:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'last_name': last_name
             })
             CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid')).update(last_name=last_name)
             CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(last_name=last_name)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(last_name=last_name)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if first_name and last_name:
             auth.update_user(
                 uid=request.session.get('firebase_uid'),
@@ -55,80 +55,80 @@ def update_profile(
             users_ref.child(request.session.get('firebase_uid')).update({
                 'email': email
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(email=email)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(email=email)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if phone_number:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'phone_number': phone_number
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(phone_number=phone_number)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(phone_number=phone_number)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if date_of_birth:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'date_of_birth': date_of_birth
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(date_of_birth=date_of_birth)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(date_of_birth=date_of_birth)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if gender:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'gender': gender
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(gender=gender)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(gender=gender)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if address1:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'address1': address1
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(address1=address1)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(address1=address1)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if address2:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'address2': address2
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(address2=address2)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(address2=address2)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if city:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'city': city
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(city=city)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(city=city)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if pincode:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'pincode': pincode
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(pincode=pincode)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(pincode=pincode)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if state:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'state': state
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(state=state)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(state=state)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if country:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'country': country
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(country=country)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(country=country)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if latitude:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'latitude': latitude
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(latitude=latitude)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(latitude=latitude)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if longitude:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'longitude': longitude
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(longitude=longitude)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(longitude=longitude)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
         if profile_picture:
             users_ref.child(request.session.get('firebase_uid')).update({
                 'profile_picture': profile_picture
             })
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).update(profile_picture=profile_picture)
-            Profile.objects.get(firebase_uid=request.session.get('firebase_uid')).save()
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).update(profile_picture=profile_picture)
+            Profile.objects.get(user=CustomFirebaseUser.objects.get(firebase_uid=request.session.get('firebase_uid'))).save()
     except exceptions.FirebaseError:
         return messages.error(request, 'An error occurred while updating your account. Please try again')
     except Exception as e:
