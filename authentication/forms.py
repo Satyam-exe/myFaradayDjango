@@ -1,22 +1,25 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ValidationError
-from .models import CustomFirebaseUser
+from .models import CustomUser
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import password_validation
 
 
-class SignUpWithEmailAndPasswordForm(forms.ModelForm):
+class SignUpForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
 
     class Meta:
-        model = CustomFirebaseUser
+        model = CustomUser
         fields = ['first_name', 'last_name', 'email', 'phone_number', 'password']
 
 
-class SignInWithEmailAndPasswordForm(AuthenticationForm):
+class LogInForm(forms.Form):
+    email = forms.EmailField(widget=forms.EmailInput)
+    password = forms.CharField(widget=forms.PasswordInput)
+
     class Meta:
-        fields = ['email', 'passwor1d']
+        fields = ['email', 'password']
 
 
 class PasswordResetForm(forms.Form):

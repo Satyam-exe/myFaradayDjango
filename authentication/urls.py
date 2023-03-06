@@ -12,32 +12,31 @@ load_dotenv(dotenv_path)
 urlpatterns = [
     path(
         'signup/',
-        views.sign_up_with_email_and_password_view,
+        views.sign_up_view,
         name="signup"
     ),
     path(
         'signup/success/',
-        views.signup_success_view,
+        views.sign_up_success_view,
         name="signup-success"
     ),
     path(
         'login/',
-        views.sign_in_with_email_and_password_view,
+        views.log_in_view,
         name="login"
     ),
     path(
         'logout/',
-        views.logout_view,
+        views.log_out_view,
         name="logout"
     ),
-    path(
-        f"verify?mode=verifyEmail&oobCode=<str:oobCode>>",
-        views.verify_email_view,
-        name="verify-email"
-    ),
-    path(
-        f"verify?mode=resetPassword&oobCode=<str:oobCode>",
-        views.confirm_password_reset_view,
-        name="reset-password"
-    ),
+     path(
+         f"verifyemail/<str:code>/",
+         views.verify_email_view,
+         name="verify-email"
+     ),
+    # path(
+    #     f"verify?mode=resetPassword&oobCode=<str:oobCode>",
+    #     name="reset-password"
+    # ),
 ]

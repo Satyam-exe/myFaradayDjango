@@ -1,7 +1,7 @@
 import ast
 
 import pytz
-from authentication.models import CustomFirebaseUser
+from authentication.models import CustomUser
 from django.utils.translation import gettext_lazy as _
 from django.db import models
 
@@ -24,8 +24,8 @@ COUNTRIES_CHOICES = ast.literal_eval(
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(CustomFirebaseUser, on_delete=models.CASCADE, primary_key=True,
-                                verbose_name=_('Firebase User ID'), db_column='firebase_uid')
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True,
+                                verbose_name=_('User ID'))
     first_name = models.CharField(max_length=30, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, verbose_name=_('Last Name'))
     email = models.EmailField(unique=True, verbose_name=_('Email Address'))

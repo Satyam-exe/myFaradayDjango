@@ -12,15 +12,15 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import os
+
+from django.contrib import messages
 from dotenv import load_dotenv
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -32,7 +32,6 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost']
-
 
 # Application definition
 
@@ -47,9 +46,7 @@ INSTALLED_APPS = [
     # third-party packages
     'crispy_forms',
     'crispy_bootstrap5',
-    'firebase_admin',
-    'tailwind',
-    'theme',
+    'rest_framework',
 
     # self-made
     'authentication',
@@ -90,7 +87,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myFaraday.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -105,7 +101,6 @@ DATABASES = {
         'TIME_ZONE': 'Asia/Kolkata'
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -125,7 +120,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -137,7 +131,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
@@ -147,7 +140,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 AUTHENTICATION_BACKENDS = [
 
@@ -163,8 +155,6 @@ FIREBASE_API_KEY = os.environ.get('FIREBASE_API_KEY')
 
 LOGIN_URL = "/auth/login/"
 
-TAILWIND_APP_NAME = 'theme'
-
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
@@ -176,4 +166,23 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-AUTH_USER_MODEL = 'authentication.CustomFirebaseUser'
+AUTH_USER_MODEL = 'authentication.CustomUser'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ]
+}
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_SAVE_EVERY_REQUEST = True
+
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_HTTPONLY = False
+
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}
+
+SITE_URL = 'http://localhost:8000/'

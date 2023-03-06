@@ -1,15 +1,15 @@
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
-from .managers import CustomFirebaseUserManager
+from .managers import CustomUserManager
 from django.utils.translation import gettext_lazy as _
 
 
-class CustomFirebaseUser(AbstractBaseUser):
-    firebase_uid = models.CharField(max_length=255, unique=True, primary_key=True, verbose_name=_('Firebase User ID'))
+class CustomUser(AbstractBaseUser):
     email = models.EmailField(unique=True, verbose_name=_('Email Address'))
     first_name = models.CharField(max_length=30, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, verbose_name=_('Last Name'))
     phone_number = models.CharField(max_length=15, unique=True, verbose_name=_('Phone Number'))
+    is_email_verified = models.BooleanField(verbose_name=_('Is Email Verified'), default=False)
     signed_up = models.DateTimeField(verbose_name=_('Signed Up'))
     last_login = models.DateTimeField(verbose_name=_('Last Login'), blank=True, null=True)
     last_activity = models.DateTimeField(verbose_name=_('Last Activity'), blank=True, null=True)
@@ -17,11 +17,11 @@ class CustomFirebaseUser(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
-    objects = CustomFirebaseUserManager()
+    objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
-    REQUIRED_FIELDS = ['firebase_uid', 'password', 'first_name', 'last_name', 'phone_number']
+    REQUIRED_FIELDS = ['password', 'first_name', 'last_name', 'phone_number']
 
     def has_perm(self, perm, obj=None):
         return self.is_superuser
@@ -32,3 +32,12 @@ class CustomFirebaseUser(AbstractBaseUser):
     class Meta:
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+
+
+class URLCode(models.Model):
+    code = models.CharField(max_length=55, verbose_name=_('Code'), editable=False, primary_key=True)
+    type_of_link = models.CharField(max_length=100, verbose_name=_('Type of Link'))
+    user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, verbose_name=_('User'))
+    generated_at = models.DateTimeField(verbose_name=_('Generated At'))
+    expires_at = models.DateTimeField(verbose_name=_('Expires At'))
+    is_used = models.BooleanField(verbose_name=_('Is Used'), default=False)

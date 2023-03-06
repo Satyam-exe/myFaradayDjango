@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import CustomFirebaseUser
+from .models import CustomUser
 
 
-class CustomFirebaseUserAdmin(admin.ModelAdmin):
+class CustomUserAdmin(admin.ModelAdmin):
     list_display = (
-        'firebase_uid',
+        'id',
         'first_name',
         'last_name',
         'email',
@@ -18,4 +18,4 @@ class CustomFirebaseUserAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(CustomFirebaseUser, CustomFirebaseUserAdmin)
+admin.site.register(CustomUser, CustomUserAdmin)
