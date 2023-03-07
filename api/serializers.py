@@ -53,8 +53,48 @@ class LogInSerializer(serializers.Serializer):
         pass
 
 
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+    class Meta:
+        fields = ('email', )
+
+
+class ConfirmPasswordResetSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    password = serializers.CharField()
+
+    class Meta:
+        fields = ('password', )
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+
+class EmailVerificationSerializer(serializers.Serializer):
+    code = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+    class Meta:
+        fields = ('code', )
+
+
 class URLCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = URLCode
-        fields = ('code',)
+        fields = '__all__'
 

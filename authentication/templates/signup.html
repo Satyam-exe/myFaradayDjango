@@ -15,12 +15,41 @@
     {% endfor %}
     {% endif %}
     {% block content %}
-      <h2>Sign Up</h2>
-      <form method="POST">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <button type="submit">Sign Up</button>
-      </form>
+        <div class="d-flex align-items-center justify-content-center p-5 bg-" style="height:90vh;">
+             <form method="POST" class="bg-light p-3 border border-dark rounded">
+                {% csrf_token %}
+                 <h1 class="text-center"><b>Sign Up</b></h1>
+                <div class="row">
+                  <div class="col">
+                      {{ form.first_name|as_crispy_field }}
+                  </div>
+                  <div class="col">
+                    {{ form.last_name|as_crispy_field }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md col-lg">
+                      {{ form.email|as_crispy_field }}
+                  </div>
+                  <div class="col-md col-lg">
+                    {{ form.phone_number|as_crispy_field }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md col-lg">
+                      {{ form.password1|as_crispy_field }}
+                  </div>
+                  <div class="col-md col-lg">
+                      {{ form.password2|as_crispy_field }}
+                  </div>
+                </div>
+                <div class="d-grid gap-2 col-6 mx-auto">
+                    <button class="btn btn-primary" type="submit">Sign Up</button>
+                    <a class="p-2 text-center" href="{% url 'login' %}">Already signed up? Log in here!</a>
+                </div>
+                    <br>
+            </form>
+        </div>
 
     {% endblock content %}
 {% endblock body %}

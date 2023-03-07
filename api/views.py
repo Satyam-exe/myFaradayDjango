@@ -8,9 +8,10 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 
-from authentication.functions import verify_code
+from authentication.functions import verify_code, send_confirm_password_reset_link
 from authentication.models import CustomUser
-from .serializers import SignUpSerializer, LogInSerializer, CustomUserSerializer, URLCodeSerializer
+from .serializers import SignUpSerializer, LogInSerializer, CustomUserSerializer, URLCodeSerializer, \
+    ConfirmPasswordResetSerializer, ResetPasswordSerializer, EmailVerificationSerializer
 
 
 class SignUpAPIView(APIView):
@@ -64,11 +65,20 @@ class LogInAPIView(APIView):
             try:
                 user = authenticate(request=request, email=email, password=password)
                 if user:
-                    return Response(
-                        {
-                            'user': CustomUserSerializer(user).data
-                        }, status=status.HTTP_200_OK
-                    )
+                    if user.is_email_verified:
+                        return Response(
+                            {
+                                'user': CustomUserSerializer(user).data
+                            }, status=status.HTTP_200_OK
+                        )
+                    else:
+                        return Response(
+                            {
+                                'error': {
+                                    'message': 'EMAIL_NOT_VERIFIED'
+                                }
+                            }, status=status.HTTP_401_UNAUTHORIZED
+                        )
                 else:
                     return Response(
                         {
@@ -104,18 +114,27 @@ class LogInAPIView(APIView):
 
 
 class EmailVerificationAPIView(APIView):
+
     def post(self, request):
-        serializer = URLCodeSerializer(data=request.data)
+        print('method is  post')
+        serializer = EmailVerificationSerializer(data=request.data)
         if serializer.is_valid():
+            print(serializer.validated_data.get('code'))
+            print('serializer is valid')
+            print(serializer.validated_data)
             try:
                 code = serializer.validated_data.get('code')
-                list_returned = verify_code(code, 'email_verification') or None
+                list_returned = verify_code(code, 'email_verification')
+                print(list_returned)
                 if list_returned:
+                    print('list is returned' + str(list_returned))
                     user = list_returned[0]
                     code_object = list_returned[1]
                     if user and code_object:
-                        user.update(is_email_verified=True)
-                        code_object.update(is_user=True)
+                        user.is_email_verified = True
+                        user.save()
+                        code_object.is_used = True
+                        code_object.save()
                         return Response(
                             {
                                 'uid': user.pk,
@@ -131,6 +150,118 @@ class EmailVerificationAPIView(APIView):
                                 }
                             }, status=status.HTTP_400_BAD_REQUEST
                         )
+                else:
+                    return Response(
+                        {
+                            'error': {
+                                'message': 'INVALID_CODE'
+                            }
+                        }, status=status.HTTP_400_BAD_REQUEST
+                    )
+            except django.db.IntegrityError as e:
+                return Response(
+                    {
+                        'error': {
+                            'message': str(e),
+                        }
+                    }, status=status.HTTP_409_CONFLICT
+                )
+            except django.db.DatabaseError as e:
+                return Response(
+                    {
+                        'error': {
+                            'message': str(e)
+                        }
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+
+class PasswordResetAPIView(APIView):
+
+    def post(self, request):
+        print('method is  post')
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            print('serializer is valid')
+            print(serializer.validated_data)
+            try:
+                email = serializer.validated_data.get('email')
+                if send_confirm_password_reset_link(email):
+                    return Response(
+                        {
+                            'email': email
+                        }, status=status.HTTP_200_OK
+                    )
+                else:
+                    return Response(
+                        {
+                            'error': {
+                                'message': 'USER_NOT_FOUND'
+                            }
+                        }, status=status.HTTP_400_BAD_REQUEST
+                    )
+            except django.db.IntegrityError as e:
+                return Response(
+                    {
+                        'error': {
+                            'message': str(e),
+                        }
+                    }, status=status.HTTP_409_CONFLICT
+                )
+            except django.db.DatabaseError as e:
+                return Response(
+                    {
+                        'error': {
+                            'message': str(e)
+                        }
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+
+class ConfirmPasswordResetAPIView(APIView):
+
+    def post(self, request):
+        print('method is  post')
+        serializer = ConfirmPasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            print('serializer is valid')
+            print(serializer.validated_data)
+            try:
+                code = serializer.validated_data.get('code')
+                password = serializer.validated_data.get('password')
+                list_returned = verify_code(code, 'password_reset_confirm') or None
+                if list_returned:
+                    print('list is returned' + str(list_returned))
+                    user = list_returned[0]
+                    code_object = list_returned[1]
+                    if user and code_object:
+                        user.set_password(password)
+                        user.save()
+                        code_object.is_used = True
+                        code_object.save()
+                        return Response(
+                            {
+                                'uid': user.pk,
+                                'email': user.email,
+                                'phone_number': user.phone_number
+                            }, status=status.HTTP_200_OK
+                        )
+                    else:
+                        return Response(
+                            {
+                                'error': {
+                                    'message': 'INVALID_CODE'
+                                }
+                            }, status=status.HTTP_400_BAD_REQUEST
+                        )
+                else:
+                    return Response(
+                        {
+                            'error': {
+                                'message': 'INVALID_CODE'
+                            }
+                        }, status=status.HTTP_400_BAD_REQUEST
+                    )
             except django.db.IntegrityError as e:
                 return Response(
                     {

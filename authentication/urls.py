@@ -8,7 +8,6 @@ from . import views
 dotenv_path = os.path.join(os.path.dirname(__file__), '..', 'myFaraday', '.env')
 load_dotenv(dotenv_path)
 
-
 urlpatterns = [
     path(
         'signup/',
@@ -30,13 +29,19 @@ urlpatterns = [
         views.log_out_view,
         name="logout"
     ),
-     path(
-         f"verifyemail/<str:code>/",
-         views.verify_email_view,
-         name="verify-email"
-     ),
-    # path(
-    #     f"verify?mode=resetPassword&oobCode=<str:oobCode>",
-    #     name="reset-password"
-    # ),
+    path(
+        'verifyemail/<str:code>/',
+        views.verify_email_view,
+        name="verify-email"
+    ),
+    path(
+        'passwordreset/',
+        views.password_reset_view,
+        name="password-reset"
+    ),
+    path(
+        'passwordreset/confirm/<str:code>/',
+        views.confirm_password_reset_view,
+        name="password-reset-confirm"
+    )
 ]

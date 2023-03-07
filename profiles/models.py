@@ -15,10 +15,11 @@ COUNTRIES_CHOICES = ast.literal_eval(
     str(
         dict(
             pytz.country_names
-        ))
-    .replace(',', '), (') \
-    .replace(':', ',') \
-    .replace('{', '((') \
+        )
+    )
+    .replace(',', '), (')
+    .replace(':', ',')
+    .replace('{', '((')
     .replace('}', '))')
 )
 
@@ -47,3 +48,48 @@ class Profile(models.Model):
     class Meta:
         verbose_name = 'User Profile'
         verbose_name_plural = 'User Profiles'
+
+
+UPDATE_CHOICES = (
+    ('first_name', 'first_name'),
+    ('last_name', 'last_name'),
+    ('email', 'email'),
+    ('phone_number', 'phone_number'),
+    ('date_of_birth', 'date_of_birth'),
+    ('gender', 'gender'),
+    ('address1', 'address1'),
+    ('address2', 'address2'),
+    ('city', 'city'),
+    ('pincode', 'pincode'),
+    ('state', 'state'),
+    ('country', 'country'),
+    ('latitude', 'latitude'),
+    ('longitude', 'longitude'),
+    ('profile_picture', 'profile_picture')
+)
+
+
+class ProfileUpdates(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.PROTECT, verbose_name=_('User'))
+    update_type = models.CharField(max_length=50, choices=UPDATE_CHOICES, verbose_name=_('Update Type'))
+    updated_from = models.CharField(max_length=100, verbose_name=_('Updated From'))
+    updated_to = models.CharField(max_length=100, verbose_name=_('Updated To'))
+    updated_at = models.DateTimeField(verbose_name=_('Updated At'))
+
+    class Meta:
+        verbose_name = 'Profile Update'
+        verbose_name_plural = 'Profile Updates'
+
+
+class HomeAddress(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, verbose_name=_('User'))
+    created_at = models.DateTimeField(verbose_name=_('Created At'))
+    address1 = models.CharField(max_length=50, verbose_name=_('Address 1'))
+    address2 = models.CharField(max_length=50, verbose_name=_('Address 2'))
+    city = models.CharField(max_length=50, verbose_name=_('City'))
+    pincode = models.CharField(max_length=6, verbose_name=_('Postal Code'))
+    state = models.CharField(max_length=50, verbose_name=_('State/Territory'))
+    country = models.CharField(max_length=2, verbose_name=_('Country'), choices=COUNTRIES_CHOICES)
+    longitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Longitude'), null=True,
+                                    blank=True)
+    latitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Latitude'), null=True, blank=True)

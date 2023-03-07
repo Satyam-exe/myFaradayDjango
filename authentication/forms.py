@@ -1,13 +1,39 @@
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field, Fieldset, HTML
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm
-from django.core.exceptions import ValidationError
-from .models import CustomUser
-from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import password_validation
+from .models import CustomUser
 
 
 class SignUpForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+    email = forms.EmailField(widget=forms.EmailInput(
+        attrs={
+            'placeholder': 'Email',
+        }
+    ))
+    first_name = forms.CharField(max_length=30)
+    last_name = forms.CharField(max_length=30)
+    phone_number = forms.CharField(max_length=15)
+    password1 = forms.CharField(
+        label="Password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'password'}),
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+
+    password2 = forms.CharField(
+        label="Confirm Password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'password'}),
+    )
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords do not match")
+        password_validation.validate_password(password2)
+        return password2
 
     class Meta:
         model = CustomUser
@@ -29,34 +55,24 @@ class PasswordResetForm(forms.Form):
         fields = ['email']
 
 
-class ConfirmPasswordResetForm(forms.ModelForm):
-    error_messages = {
-        "password_mismatch": _("The two password fields didn’t match."),
-    }
+class ConfirmPasswordResetForm(forms.Form):
     new_password1 = forms.CharField(
-        label=_("New password"),
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        label="New password",
         strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
         help_text=password_validation.password_validators_help_text_html(),
     )
+
     new_password2 = forms.CharField(
-        label=_("New password confirmation"),
+        label="Confirm new password",
         strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
     )
 
-    def __init__(self, user, *args, **kwargs):
-        self.user = user
-        super().__init__(*args, **kwargs)
-
     def clean_new_password2(self):
-        password1 = self.cleaned_data.get("new_password1")
-        password2 = self.cleaned_data.get("new_password2")
-        if password1 and password2:
-            if password1 != password2:
-                raise ValidationError(
-                    self.error_messages["password_mismatch"],
-                    code="password_mismatch",
-                )
-        password_validation.validate_password(password2, self.user)
-        return password2
+        new_password1 = self.cleaned_data.get('new_password1')
+        new_password2 = self.cleaned_data.get('new_password2')
+        if new_password1 and new_password2 and new_password1 != new_password2:
+            raise forms.ValidationError("Passwords do not match")
+        password_validation.validate_password(new_password2)
+        return new_password2

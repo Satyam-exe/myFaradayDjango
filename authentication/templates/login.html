@@ -2,6 +2,8 @@
 
 {% load crispy_forms_tags %}
 
+{% crispy form form.helper %}
+
 {% block head_title %}Login{% endblock %}
 
 {% block body %}
@@ -16,14 +18,21 @@
     {% endfor %}
     {% endif %}
 
-  {% block content %}
+    {% block content %}
 
-    <h2>Login</h2>
-    <form method="POST">
-      {% csrf_token %}
-      {{ form|crispy }}
-      <button type="submit">Login</button>
-    </form>
+        <div class="d-flex align-items-center justify-content-center p-100" style="height:90vh;">
+             <form method="POST" class="bg-light p-3 border border-dark rounded w-25">
+                {% csrf_token %}
+                 <h1 class="text-center"><b>Log In</b></h1>
+                      {{ form.email|as_crispy_field }}
+                      {{ form.password|as_crispy_field }}
+                <div class="d-grid gap-2 col-8 mx-auto">
+                    <button class="btn btn-primary" type="submit">Log In</button>
+                    <a class="p-2 text-center" href="{% url 'signup' %}">Don't have an account? Sign up here!</a>
+                    <a class="p-2 text-center" href="{% url 'password-reset' %}">Forgot Password?</a>
+                </div>
+            </form>
+        </div>
 
-  {% endblock content %}
+    {% endblock content %}
 {% endblock body %}
