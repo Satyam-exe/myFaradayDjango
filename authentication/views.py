@@ -11,6 +11,9 @@ from .functions import verify_code
 from .models import CustomUser
 
 
+# Validates the form, adds signup platform value of Django because only web users are able to submit this form. Then it
+# converts the form into a serializer and sends it to the REST API. The API then responds back with json, it interprets
+# the status codes and returns redirects or messages on that.
 def sign_up_view(request):
     if request.method == 'POST':
         form = forms.SignUpForm(request.POST)
@@ -20,7 +23,8 @@ def sign_up_view(request):
                 'last_name': form.cleaned_data.get('last_name'),
                 'email': form.cleaned_data.get('email'),
                 'phone_number': form.cleaned_data.get('phone_number'),
-                'password': form.cleaned_data.get('password2')
+                'password': form.cleaned_data.get('password2'),
+                'signup_platform': 'django'
             }
             serializer = serializers.SignUpSerializer(data=form_data)
             if serializer.is_valid():
@@ -29,10 +33,6 @@ def sign_up_view(request):
                 response = requests.post(url=url, data=serializer_data)
                 if response.status_code == 201:
                     return redirect('signup-success')
-                elif response.status_code == 400:
-                    messages.error(request, 'Invalid Credentials. Please Try Again.')
-                elif response.status_code == 401:
-                    messages.error(request, 'Your email is not verified. Please verify before logging in.')
                 elif response.status_code == 500:
                     messages.error(request, 'Internal Server Error. Please Try Again.')
                 elif response.status_code == 409:
@@ -45,6 +45,11 @@ def sign_up_view(request):
 
 
 def sign_up_success_view(request):
+    messages.success(
+        request,
+        'You have successfully signed up. Please verify your email before logging in. '
+        'An email verification link has been sent to you.'
+    )
     return render(request, 'signupsuccess.html')
 
 
@@ -143,9 +148,9 @@ def confirm_password_reset_view(request, code):
                     messages.error(request, f'Something Went Wrong. Please Try Again')
     else:
         form = forms.ConfirmPasswordResetForm()
-        # if not verify_code(code, 'password_reset_confirm'):
-        #     messages.error(request, 'The link is either expired or invalid. Please request a new one.')
-        #     form = None
+        if not verify_code(code, 'password_reset_confirm'):
+            messages.error(request, 'The link is either expired or invalid. Please request a new one.')
+            form = None
     print('rendering')
     return render(request, 'resetpasswordconfirm.html', {'form': form})
 

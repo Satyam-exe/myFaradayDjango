@@ -1,5 +1,12 @@
 import pytz
-from django.test import TestCase
 
 # Create your tests here.
-print(pytz.country_names)
+print(str(dict(pytz.country_names)).replace(',', '), \n  (').replace(':', ',').replace('{', '(\n  (').replace('}', ')\n)'))
+# .replace(',', '), (')
+# .replace(':', ',')
+# .replace('{', '((')
+# .replace('}', '))')
+hui = {
+    'AD': 'Andorra',
+    'fds': 'dsfdsf'
+}

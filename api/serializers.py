@@ -1,12 +1,11 @@
 from rest_framework import serializers
 
 from authentication.functions import send_email_verification_link
-from authentication.models import CustomUser,  URLCode
+from authentication.models import CustomUser, URLCode
 from profiles.models import Profile
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = CustomUser
         fields = '__all__'
@@ -18,14 +17,15 @@ class SignUpSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField()
     phone_number = serializers.CharField()
     password = serializers.CharField()
+    signup_platform = serializers.CharField()
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'phone_number', 'first_name', 'last_name', 'password')
+        fields = ('email', 'phone_number', 'first_name', 'last_name', 'password', 'signup_platform')
 
     def create(self, validated_data):
         new_user = CustomUser.objects.create_user(
-            **validated_data
+            **validated_data,
         )
         profile = Profile(
             user=new_user,
@@ -63,7 +63,7 @@ class ResetPasswordSerializer(serializers.Serializer):
         pass
 
     class Meta:
-        fields = ('email', )
+        fields = ('email',)
 
 
 class ConfirmPasswordResetSerializer(serializers.Serializer):
@@ -71,7 +71,7 @@ class ConfirmPasswordResetSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     class Meta:
-        fields = ('password', )
+        fields = ('password',)
 
     def create(self, validated_data):
         pass
@@ -90,11 +90,10 @@ class EmailVerificationSerializer(serializers.Serializer):
         pass
 
     class Meta:
-        fields = ('code', )
+        fields = ('code',)
 
 
 class URLCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = URLCode
         fields = '__all__'
-

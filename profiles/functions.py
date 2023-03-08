@@ -4,7 +4,7 @@ import pytz
 
 from authentication.models import CustomUser
 
-from .models import Profile, ProfileUpdates
+from .models import Profile, ProfileUpdates, HomeAddress
 
 
 def update_profile(
@@ -20,7 +20,6 @@ def update_profile(
         city=None,
         pincode=None,
         state=None,
-        country=None,
         longitude=None,
         latitude=None,
         profile_picture=None,
@@ -112,12 +111,12 @@ def update_profile(
             new_update.save()
             updates += 1
         if address1:
-            profile = Profile.objects.get(pk=uid)
-            old_value = profile.address1
-            profile.address1 = address1
-            profile.save()
+            address = HomeAddress.objects.get(pk=uid)
+            old_value = address.address1
+            address.address1 = address1
+            address.save()
             new_update = ProfileUpdates(
-                user=profile,
+                user=address.user,
                 update_type='address1',
                 updated_from=old_value,
                 updated_to=address1,
@@ -126,12 +125,12 @@ def update_profile(
             new_update.save()
             updates += 1
         if address2:
-            profile = Profile.objects.get(pk=uid)
-            old_value = profile.address2
-            profile.address2 = address2
-            profile.save()
+            address = HomeAddress.objects.get(pk=uid)
+            old_value = address.address2
+            address.address2 = address2
+            address.save()
             new_update = ProfileUpdates(
-                user=profile,
+                user=address.user,
                 update_type='address2',
                 updated_from=old_value,
                 updated_to=address2,
@@ -140,12 +139,12 @@ def update_profile(
             new_update.save()
             updates += 1
         if city:
-            profile = Profile.objects.get(pk=uid)
-            old_value = profile.city
-            profile.city = city
-            profile.save()
+            address = HomeAddress.objects.get(pk=uid)
+            old_value = address.city
+            address.city = city
+            address.save()
             new_update = ProfileUpdates(
-                user=profile,
+                user=address.user,
                 update_type='city',
                 updated_from=old_value,
                 updated_to=city,
@@ -154,12 +153,12 @@ def update_profile(
             new_update.save()
             updates += 1
         if pincode:
-            profile = Profile.objects.get(pk=uid)
-            old_value = profile.pincode
-            profile.pincode = pincode
-            profile.save()
+            address = HomeAddress.objects.get(pk=uid)
+            old_value = address.pincode
+            address.pincode = pincode
+            address.save()
             new_update = ProfileUpdates(
-                user=profile,
+                user=address.user,
                 update_type='pincode',
                 updated_from=old_value,
                 updated_to=pincode,
@@ -168,12 +167,12 @@ def update_profile(
             new_update.save()
             updates += 1
         if state:
-            profile = Profile.objects.get(pk=uid)
-            old_value = profile.state
-            profile.state = state
-            profile.save()
+            address = HomeAddress.objects.get(pk=uid)
+            old_value = address.state
+            address.state = state
+            address.save()
             new_update = ProfileUpdates(
-                user=profile,
+                user=address.user,
                 update_type='state',
                 updated_from=old_value,
                 updated_to=state,
@@ -181,27 +180,13 @@ def update_profile(
             )
             new_update.save()
             updates += 1
-        if country:
-            profile = Profile.objects.get(pk=uid)
-            old_value = profile.country
-            profile.country = country
-            profile.save()
-            new_update = ProfileUpdates(
-                user=profile,
-                update_type='country',
-                updated_from=old_value,
-                updated_to=country,
-                updated_at=datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
-            )
-            new_update.save()
-            updates += 1
         if latitude:
-            profile = Profile.objects.get(pk=uid)
-            old_value = profile.latitude
-            profile.latitude = latitude
-            profile.save()
+            address = HomeAddress.objects.get(pk=uid)
+            old_value = address.latitude
+            address.latitude = latitude
+            address.save()
             new_update = ProfileUpdates(
-                user=profile,
+                user=address.user,
                 update_type='latitude',
                 updated_from=old_value,
                 updated_to=latitude,
@@ -210,12 +195,12 @@ def update_profile(
             new_update.save()
             updates += 1
         if longitude:
-            profile = Profile.objects.get(pk=uid)
-            old_value = profile.longitude
-            profile.longitude = longitude
-            profile.save()
+            address = HomeAddress.objects.get(pk=uid)
+            old_value = address.longitude
+            address.longitude = longitude
+            address.save()
             new_update = ProfileUpdates(
-                user=profile,
+                user=address.user,
                 update_type='longitude',
                 updated_from=old_value,
                 updated_to=longitude,

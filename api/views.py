@@ -2,57 +2,74 @@ import django.db
 import rest_framework.generics
 from django.contrib.auth import authenticate, login
 from django.core.exceptions import ValidationError
-from django.db import transaction
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 
-from authentication.functions import verify_code, send_confirm_password_reset_link
+from authentication.functions import verify_code, send_confirm_password_reset_link, send_email_verification_link
 from authentication.models import CustomUser
-from .serializers import SignUpSerializer, LogInSerializer, CustomUserSerializer, URLCodeSerializer, \
+from .serializers import SignUpSerializer, LogInSerializer, CustomUserSerializer, \
     ConfirmPasswordResetSerializer, ResetPasswordSerializer, EmailVerificationSerializer
 
 
 class SignUpAPIView(APIView):
 
-    @transaction.atomic
     def post(self, request):
-        serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
+        try:
+            serializer = SignUpSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            email_conflict = CustomUser.objects.filter(email=serializer.validated_data.get('email')).exists()
+            phone_conflict = CustomUser.objects.filter(phone_number=serializer.validated_data.get('phone_number')).exists()
+
+            if email_conflict and phone_conflict:
+                message = 'BOTH_IDENTIFIERS_ALREADY_IN_USE'
+            elif email_conflict:
+                message = 'EMAIL_ALREADY_IN_USE'
+            elif phone_conflict:
+                message = 'PHONE_NUMBER_ALREADY_IN_USE'
+            else:
                 new_user = serializer.create(validated_data=serializer.validated_data)
                 return Response(
                     {
                         'uid': new_user.pk,
                         'email': new_user.email,
-                        'phone_number': new_user.phone_number
+                        'phone_number': new_user.phone_number,
+                        'first_name': new_user.first_name,
+                        'last_name': new_user.last_name,
+                        'is_superuser': new_user.is_superuser,
+                        'is_staff': new_user.is_staff,
+                        'is_email_verified': new_user.is_email_verified
                     }, status=status.HTTP_201_CREATED
                 )
-            except django.db.IntegrityError as e:
-                return Response(
-                    {
-                        'error': {
-                            'message': str(e),
-                        }
-                    }, status=status.HTTP_409_CONFLICT
-                )
-            except django.db.DatabaseError as e:
-                return Response(
-                    {
-                        'error': {
-                            'message': str(e)
-                        }
-                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-            except ValidationError as e:
-                return Response(
-                    {
-                        'error': {
-                            'message': str(e)
-                        }
-                    }, status=status.HTTP_400_BAD_REQUEST
-                )
+
+            return Response(
+                {
+                    'error': {
+                        'message': message,
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+
+        except (django.db.IntegrityError, ValidationError) as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT if isinstance(e, django.db.IntegrityError) else status.HTTP_400_BAD_REQUEST
+            )
+
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class LogInAPIView(APIView):
@@ -68,7 +85,7 @@ class LogInAPIView(APIView):
                     if user.is_email_verified:
                         return Response(
                             {
-                                'user': CustomUserSerializer(user).data
+                                'uid': user.pk
                             }, status=status.HTTP_200_OK
                         )
                     else:
@@ -280,7 +297,7 @@ class ConfirmPasswordResetAPIView(APIView):
                 )
 
 
-class UserListView(rest_framework.generics.ListAPIView):
+class UserListAPIView(rest_framework.generics.ListAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
@@ -288,7 +305,7 @@ class UserListView(rest_framework.generics.ListAPIView):
         return self.list(request, *args, **kwargs)
 
 
-class UserRetrieveView(APIView):
+class UserRetrieveAPIView(APIView):
 
     def get(self, request, pk):
         serializer = CustomUserSerializer(CustomUser.objects.get(pk=pk))
@@ -305,3 +322,81 @@ class UserRetrieveView(APIView):
     def delete(self, request, pk):
         CustomUser.objects.get(pk=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UserRetrieveWithEmailAPIView(APIView):
+
+    def get(self, request, email):
+        serializer = CustomUserSerializer(CustomUser.objects.get(email=email))
+        return Response(serializer.data)
+
+    def put(self, request, email, **kwargs):
+        serializer = CustomUserSerializer(CustomUser.objects.get(email=email).update(**kwargs))
+        return Response(serializer.data)
+
+    def patch(self, request, email, **kwargs):
+        serializer = CustomUserSerializer(CustomUser.objects.get(email=email).update(**kwargs))
+        return Response(serializer.data)
+
+    def delete(self, request, email):
+        CustomUser.objects.get(email=email).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UserRetrieveWithPhoneNumberAPIView(APIView):
+
+    def get(self, request, phone_number):
+        serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number))
+        return Response(serializer.data)
+
+    def put(self, request, phone_number, **kwargs):
+        serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number).update(**kwargs))
+        return Response(serializer.data)
+
+    def patch(self, request, phone_number, **kwargs):
+        serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number).update(**kwargs))
+        return Response(serializer.data)
+
+    def delete(self, request, phone_number):
+        CustomUser.objects.get(phone_number=phone_number).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SendEmailVerificationAPIView(APIView):
+
+    def post(self, request):
+        try:
+            uid = request.data.get('uid')
+            user = CustomUser.objects.get(pk=uid)
+            send_email_verification_link(uid=uid)
+            return Response(
+                {
+                    'uid': user.pk,
+                    'email': user.email,
+                    'phone_number': user.phone_number
+                }, status=status.HTTP_200_OK
+            )
+        except CustomUser.DoesNotExist:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND',
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

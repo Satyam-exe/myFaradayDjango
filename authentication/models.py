@@ -4,6 +4,12 @@ from .managers import CustomUserManager
 from django.utils.translation import gettext_lazy as _
 
 
+SIGNUP_PLATFORM_CHOICES = (
+    ('django', 'Django'),
+    ('flutter', 'Flutter')
+)
+
+
 class CustomUser(AbstractBaseUser):
     email = models.EmailField(unique=True, verbose_name=_('Email Address'))
     first_name = models.CharField(max_length=30, verbose_name=_('First Name'))
@@ -11,6 +17,7 @@ class CustomUser(AbstractBaseUser):
     phone_number = models.CharField(max_length=15, unique=True, verbose_name=_('Phone Number'))
     is_email_verified = models.BooleanField(verbose_name=_('Is Email Verified'), default=False)
     signed_up = models.DateTimeField(verbose_name=_('Signed Up'))
+    signup_platform = models.CharField(max_length=10, choices=SIGNUP_PLATFORM_CHOICES, verbose_name=_('Signup Platform'))
     last_login = models.DateTimeField(verbose_name=_('Last Login'), blank=True, null=True)
     last_activity = models.DateTimeField(verbose_name=_('Last Activity'), blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -28,18 +35,6 @@ class CustomUser(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return self.is_superuser
-
-    def __str__(self):
-        return f'{self.email}, {self.phone_number}'
-
-    def get_username(self):
-        return self.email
-
-    def get_full_name(self):
-        return f'{self.first_name} {self.last_name}'
-
-    def get_short_name(self):
-        return self.first_name
 
     class Meta:
         verbose_name = 'User'

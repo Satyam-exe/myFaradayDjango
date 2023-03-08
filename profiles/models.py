@@ -1,6 +1,3 @@
-import ast
-
-import pytz
 from authentication.models import CustomUser
 from django.utils.translation import gettext_lazy as _
 from django.db import models
@@ -10,18 +7,6 @@ GENDER_CHOICES = [
     ('F', _('Female')),
     ('O', _('Others')),
 ]
-
-COUNTRIES_CHOICES = ast.literal_eval(
-    str(
-        dict(
-            pytz.country_names
-        )
-    )
-    .replace(',', '), (')
-    .replace(':', ',')
-    .replace('{', '((')
-    .replace('}', '))')
-)
 
 
 class Profile(models.Model):
@@ -33,21 +18,65 @@ class Profile(models.Model):
     phone_number = models.CharField(max_length=15, unique=True, verbose_name=_('Phone Number'))
     date_of_birth = models.DateField(verbose_name=_('Date of Birth'), null=True, blank=True)
     gender = models.CharField(max_length=1, verbose_name=_('Gender'), choices=GENDER_CHOICES, null=True, blank=True)
-    address1 = models.CharField(max_length=50, verbose_name=_('Address 1'), null=True, blank=True)
-    address2 = models.CharField(max_length=50, verbose_name=_('Address 2'), null=True, blank=True)
-    city = models.CharField(max_length=50, verbose_name=_('City'), null=True, blank=True)
-    pincode = models.CharField(verbose_name=_('Postal Code'), max_length=6, null=True, blank=True)
-    state = models.CharField(max_length=50, verbose_name=_('State/Territory'), null=True, blank=True)
-    country = models.CharField(max_length=2, verbose_name=_('Country'), choices=COUNTRIES_CHOICES, null=True,
-                               blank=True)
-    longitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Longitude'), null=True,
-                                    blank=True)
-    latitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Latitude'), null=True, blank=True)
     profile_picture = models.ImageField(verbose_name=_('Profile Picture'), null=True, blank=True)
 
     class Meta:
         verbose_name = 'User Profile'
         verbose_name_plural = 'User Profiles'
+
+
+STATE_CHOICES = (
+    ("AN", "Andaman and Nicobar Islands"),
+    ("AP", "Andhra Pradesh"),
+    ("AR", "Arunachal Pradesh"),
+    ("AS", "Assam"),
+    ("BR", "Bihar"),
+    ("CG", "Chhattisgarh"),
+    ("CH", "Chandigarh"),
+    ("DN", "Dadra and Nagar Haveli"),
+    ("DD", "Daman and Diu"),
+    ("DL", "Delhi"),
+    ("GA", "Goa"),
+    ("GJ", "Gujarat"),
+    ("HR", "Haryana"),
+    ("HP", "Himachal Pradesh"),
+    ("JK", "Jammu and Kashmir"),
+    ("JH", "Jharkhand"),
+    ("KA", "Karnataka"),
+    ("KL", "Kerala"),
+    ("LA", "Ladakh"),
+    ("LD", "Lakshadweep"),
+    ("MP", "Madhya Pradesh"),
+    ("MH", "Maharashtra"),
+    ("MN", "Manipur"),
+    ("ML", "Meghalaya"),
+    ("MZ", "Mizoram"),
+    ("NL", "Nagaland"),
+    ("OD", "Odisha"),
+    ("PB", "Punjab"),
+    ("PY", "Pondicherry"),
+    ("RJ", "Rajasthan"),
+    ("SK", "Sikkim"),
+    ("TN", "Tamil Nadu"),
+    ("TS", "Telangana"),
+    ("TR", "Tripura"),
+    ("UP", "Uttar Pradesh"),
+    ("UK", "Uttarakhand"),
+    ("WB", "West Bengal")
+)
+
+
+class HomeAddress(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, verbose_name=_('User'))
+    created_at = models.DateTimeField(verbose_name=_('Created At'))
+    address1 = models.CharField(max_length=50, verbose_name=_('Address 1'))
+    address2 = models.CharField(max_length=50, verbose_name=_('Address 2'))
+    city = models.CharField(max_length=50, verbose_name=_('City'))
+    pincode = models.CharField(max_length=6, verbose_name=_('Postal Code'))
+    state = models.CharField(max_length=2, verbose_name=_('State'), choices=STATE_CHOICES)
+    longitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Longitude'), null=True,
+                                    blank=True)
+    latitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Latitude'), null=True, blank=True)
 
 
 UPDATE_CHOICES = (
@@ -62,7 +91,6 @@ UPDATE_CHOICES = (
     ('city', 'city'),
     ('pincode', 'pincode'),
     ('state', 'state'),
-    ('country', 'country'),
     ('latitude', 'latitude'),
     ('longitude', 'longitude'),
     ('profile_picture', 'profile_picture')
@@ -79,17 +107,3 @@ class ProfileUpdates(models.Model):
     class Meta:
         verbose_name = 'Profile Update'
         verbose_name_plural = 'Profile Updates'
-
-
-class HomeAddress(models.Model):
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE, verbose_name=_('User'))
-    created_at = models.DateTimeField(verbose_name=_('Created At'))
-    address1 = models.CharField(max_length=50, verbose_name=_('Address 1'))
-    address2 = models.CharField(max_length=50, verbose_name=_('Address 2'))
-    city = models.CharField(max_length=50, verbose_name=_('City'))
-    pincode = models.CharField(max_length=6, verbose_name=_('Postal Code'))
-    state = models.CharField(max_length=50, verbose_name=_('State/Territory'))
-    country = models.CharField(max_length=2, verbose_name=_('Country'), choices=COUNTRIES_CHOICES)
-    longitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Longitude'), null=True,
-                                    blank=True)
-    latitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Latitude'), null=True, blank=True)
