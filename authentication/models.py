@@ -11,6 +11,7 @@ SIGNUP_PLATFORM_CHOICES = (
 
 
 class CustomUser(AbstractBaseUser):
+    uid = models.BigAutoField(primary_key=True, db_column='uid', verbose_name=_('User ID'))
     email = models.EmailField(unique=True, verbose_name=_('Email Address'))
     first_name = models.CharField(max_length=30, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, verbose_name=_('Last Name'))
@@ -44,7 +45,7 @@ class CustomUser(AbstractBaseUser):
 class URLCode(models.Model):
     code = models.CharField(max_length=55, verbose_name=_('Code'), editable=False, primary_key=True)
     type_of_link = models.CharField(max_length=100, verbose_name=_('Type of Link'))
-    user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, verbose_name=_('User'))
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, verbose_name=_('User'), null=True)
     generated_at = models.DateTimeField(verbose_name=_('Generated At'))
     expires_at = models.DateTimeField(verbose_name=_('Expires At'))
     is_used = models.BooleanField(verbose_name=_('Is Used'), default=False)

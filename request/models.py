@@ -5,8 +5,8 @@ from django.utils.translation import gettext_lazy as _
 
 class RequestModel(models.Model):
     request_id = models.IntegerField(verbose_name=_('Request ID'), primary_key=True, editable=False)
-    user = models.ForeignKey(Profile, on_delete=models.PROTECT,
-                             verbose_name=_('User ID'))
+    user = models.ForeignKey(Profile, on_delete=models.SET_NULL,
+                             verbose_name=_('User ID'), null=True)
     time_of_request = models.DateTimeField(verbose_name=_('Time of Request'))
     name = models.CharField(verbose_name=_('Full Name'), max_length=100)
     address = models.CharField(max_length=100, verbose_name=_('Address'))

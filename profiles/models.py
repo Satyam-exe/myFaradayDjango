@@ -98,7 +98,7 @@ UPDATE_CHOICES = (
 
 
 class ProfileUpdates(models.Model):
-    user = models.ForeignKey(Profile, on_delete=models.PROTECT, verbose_name=_('User'))
+    user = models.ForeignKey(Profile, on_delete=models.SET_NULL, verbose_name=_('User'), null=True)
     update_type = models.CharField(max_length=50, choices=UPDATE_CHOICES, verbose_name=_('Update Type'))
     updated_from = models.CharField(max_length=100, verbose_name=_('Updated From'))
     updated_to = models.CharField(max_length=100, verbose_name=_('Updated To'))

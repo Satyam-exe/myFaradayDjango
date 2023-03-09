@@ -1,6 +1,7 @@
 import django.db
 import rest_framework.generics
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
 from rest_framework import status
@@ -41,7 +42,8 @@ class SignUpAPIView(APIView):
                         'last_name': new_user.last_name,
                         'is_superuser': new_user.is_superuser,
                         'is_staff': new_user.is_staff,
-                        'is_email_verified': new_user.is_email_verified
+                        'is_email_verified': new_user.is_email_verified,
+                        'password': new_user.password,
                     }, status=status.HTTP_201_CREATED
                 )
 
@@ -52,16 +54,33 @@ class SignUpAPIView(APIView):
                     }
                 }, status=status.HTTP_409_CONFLICT
             )
-
-        except (django.db.IntegrityError, ValidationError) as e:
+        except django.db.IntegrityError as e:
             return Response(
                 {
                     'error': {
                         'message': str(e),
                     }
-                }, status=status.HTTP_409_CONFLICT if isinstance(e, django.db.IntegrityError) else status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_409_CONFLICT
             )
-
+        except ValidationError as e:
+            try:
+                validate_password(request.data.get('password'))
+            except ValidationError:
+                return Response(
+                    {
+                        'error': {
+                            'message': 'WEAK_PASSWORD',
+                        }
+                    }, status=status.HTTP_400_BAD_REQUEST
+                )
+            else:
+                return Response(
+                    {
+                        'error': {
+                            'message': str(e),
+                        }
+                    }, status=status.HTTP_400_BAD_REQUEST
+                )
         except django.db.DatabaseError as e:
             return Response(
                 {
@@ -85,7 +104,8 @@ class LogInAPIView(APIView):
                     if user.is_email_verified:
                         return Response(
                             {
-                                'uid': user.pk
+                                'uid': user.pk,
+                                'password': user.password
                             }, status=status.HTTP_200_OK
                         )
                     else:
@@ -308,58 +328,166 @@ class UserListAPIView(rest_framework.generics.ListAPIView):
 class UserRetrieveAPIView(APIView):
 
     def get(self, request, pk):
-        serializer = CustomUserSerializer(CustomUser.objects.get(pk=pk))
-        return Response(serializer.data)
+        try:
+            serializer = CustomUserSerializer(CustomUser.objects.get(pk=pk))
+            return Response(serializer.data)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def put(self, request, pk, **kwargs):
-        serializer = CustomUserSerializer(CustomUser.objects.get(pk=pk).update(**kwargs))
-        return Response(serializer.data)
+        try:
+            serializer = CustomUserSerializer(CustomUser.objects.get(pk=pk).update(**kwargs))
+            return Response(serializer.data)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def patch(self, request, pk, **kwargs):
-        serializer = CustomUserSerializer(CustomUser.objects.get(pk=pk).update(**kwargs))
-        return Response(serializer.data)
+        try:
+            serializer = CustomUserSerializer(CustomUser.objects.get(pk=pk).update(**kwargs))
+            return Response(serializer.data)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def delete(self, request, pk):
-        CustomUser.objects.get(pk=pk).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            CustomUser.objects.get(pk=pk).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class UserRetrieveWithEmailAPIView(APIView):
 
     def get(self, request, email):
-        serializer = CustomUserSerializer(CustomUser.objects.get(email=email))
-        return Response(serializer.data)
+        try:
+            serializer = CustomUserSerializer(CustomUser.objects.get(email=email))
+            return Response(serializer.data)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def put(self, request, email, **kwargs):
-        serializer = CustomUserSerializer(CustomUser.objects.get(email=email).update(**kwargs))
-        return Response(serializer.data)
+        try:
+            serializer = CustomUserSerializer(CustomUser.objects.get(email=email).update(**kwargs))
+            return Response(serializer.data)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def patch(self, request, email, **kwargs):
-        serializer = CustomUserSerializer(CustomUser.objects.get(email=email).update(**kwargs))
-        return Response(serializer.data)
+        try:
+            serializer = CustomUserSerializer(CustomUser.objects.get(email=email).update(**kwargs))
+            return Response(serializer.data)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def delete(self, request, email):
-        CustomUser.objects.get(email=email).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            CustomUser.objects.get(email=email).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class UserRetrieveWithPhoneNumberAPIView(APIView):
 
     def get(self, request, phone_number):
-        serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number))
-        return Response(serializer.data)
+        try:
+            serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number))
+            return Response(serializer.data)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def put(self, request, phone_number, **kwargs):
-        serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number).update(**kwargs))
-        return Response(serializer.data)
+        try:
+            serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number).update(**kwargs))
+            return Response(serializer.data)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def patch(self, request, phone_number, **kwargs):
-        serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number).update(**kwargs))
-        return Response(serializer.data)
+        try:
+            serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number).update(**kwargs))
+            return Response(serializer.data)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def delete(self, request, phone_number):
-        CustomUser.objects.get(phone_number=phone_number).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            CustomUser.objects.get(phone_number=phone_number).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response(
+                {
+                    'error': {
+                        'message': 'USER_NOT_FOUND'
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class SendEmailVerificationAPIView(APIView):
