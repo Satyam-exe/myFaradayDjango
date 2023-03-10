@@ -1,7 +1,6 @@
 from rest_framework import serializers
-
 from authentication.functions import send_email_verification_link
-from authentication.models import CustomUser, URLCode
+from authentication.models import CustomUser, URLCode, MobileAuthToken
 from profiles.models import Profile
 
 
@@ -42,9 +41,20 @@ class SignUpSerializer(serializers.ModelSerializer):
 class LogInSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
+    request_platform = serializers.ChoiceField(
+        choices=(
+            ('flutter', 'Flutter'),
+            ('django', 'Django')),
+        allow_blank=True,
+        allow_null=True
+    )
+    requested_time_in_days = serializers.CharField(
+        allow_blank=True,
+        allow_null=True
+    )
 
     class Meta:
-        fields = ('email', 'password')
+        fields = ('email', 'password', 'request_platform', 'requested_time_in_days')
 
     def create(self, validated_data):
         pass
@@ -97,3 +107,37 @@ class URLCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = URLCode
         fields = '__all__'
+
+
+class MobileAuthTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MobileAuthToken
+        fields = '__all__'
+
+
+class VerifyMobileAuthTokenSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True)
+    uid = serializers.IntegerField(required=True)
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+    class Meta:
+        fields = ('token', 'uid')
+
+
+class RevokeMobileAuthTokenSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+    class Meta:
+        fields = ('token',)
+

@@ -49,3 +49,12 @@ class URLCode(models.Model):
     generated_at = models.DateTimeField(verbose_name=_('Generated At'))
     expires_at = models.DateTimeField(verbose_name=_('Expires At'))
     is_used = models.BooleanField(verbose_name=_('Is Used'), default=False)
+
+
+class MobileAuthToken(models.Model):
+    token = models.CharField(max_length=55, verbose_name=_('Token'), editable=False, primary_key=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, verbose_name=_('User'), null=True)
+    generated_at = models.DateTimeField(verbose_name=_('Generated At'))
+    expires_at = models.DateTimeField(verbose_name=_('Expires At'))
+    is_revoked = models.BooleanField(verbose_name=_('Is Revoked'))
+    last_used = models.DateTimeField(verbose_name=_('Last Used'))

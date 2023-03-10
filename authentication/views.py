@@ -97,7 +97,7 @@ def password_reset_view(request):
                 response = requests.post(url=url, data=data)
                 if response.status_code == 200:
                     messages.success(request, 'A password reset link has been sent to your email successfully.')
-                elif response.status_code == 400:
+                elif response.status_code == 404:
                     messages.error(request, 'User with the provided email does not exist.')
                 elif response.status_code == 500:
                     print('status code is 500')

@@ -5,7 +5,7 @@ import pytz
 from django.conf import settings
 from django.core.mail import send_mail
 
-from authentication.models import CustomUser, URLCode
+from authentication.models import CustomUser, URLCode, MobileAuthToken
 
 
 def generate_url(uid, type_of_link):
@@ -99,6 +99,47 @@ def verify_code(code, type_of_link):
             return None
         return [user, code_object]
     except URLCode.DoesNotExist:
+        return None
+    except CustomUser.DoesNotExist:
+        return None
+
+
+def generate_mobile_auth_token(uid, requested_time_in_days):
+    token = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(55))
+    i = 1
+    try:
+        while i > 0:
+            if MobileAuthToken.objects.get(pk=token):
+                token = generate_url(uid, requested_time_in_days)
+            else:
+                i = 0
+    except MobileAuthToken.DoesNotExist:
+        pass
+    finally:
+        new_token_object = MobileAuthToken(
+            token=token,
+            user=CustomUser.objects.get(pk=uid),
+            generated_at=datetime.datetime.now(pytz.timezone('Asia/Kolkata')),
+            expires_at=datetime.datetime.now(pytz.timezone('Asia/Kolkata')) + datetime.timedelta(days=float(requested_time_in_days)),
+            is_revoked=False,
+            last_used=datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
+        )
+        new_token_object.save()
+        return token
+
+
+def verify_mobile_auth_token(token, uid):
+    try:
+        token_object = MobileAuthToken.objects.get(pk=token)
+        user = CustomUser.objects.get(pk=uid)
+        if not token_object.user == user:
+            return None
+        if token_object.expires_at < datetime.datetime.now(pytz.timezone('Asia/Kolkata')):
+            return None
+        if token_object.is_revoked:
+            return None
+        return [user, token_object]
+    except MobileAuthToken.DoesNotExist:
         return None
     except CustomUser.DoesNotExist:
         return None
