@@ -143,3 +143,4 @@ def verify_mobile_auth_token(token, uid):
         return None
     except CustomUser.DoesNotExist:
         return None
+

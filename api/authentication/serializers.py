@@ -1,6 +1,10 @@
+from datetime import datetime
+import pytz
+from django.db import transaction
 from rest_framework import serializers
 from authentication.functions import send_email_verification_link
 from authentication.models import CustomUser, URLCode, MobileAuthToken
+from profiles.functions import generate_default_profile_picture_content_file
 from profiles.models import Profile
 
 
@@ -22,6 +26,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ('email', 'phone_number', 'first_name', 'last_name', 'password', 'signup_platform')
 
+    @transaction.atomic
     def create(self, validated_data):
         new_user = CustomUser.objects.create_user(
             **validated_data,
@@ -31,8 +36,11 @@ class SignUpSerializer(serializers.ModelSerializer):
             first_name=new_user.first_name,
             last_name=new_user.last_name,
             email=new_user.email,
-            phone_number=new_user.phone_number
+            phone_number=new_user.phone_number,
         )
+        profile.profile_picture.save(f'{new_user.pk}/{datetime.now(pytz.timezone("Asia/Kolkata"))}.png',
+                                     content=generate_default_profile_picture_content_file(new_user)
+                                     )
         profile.save()
         send_email_verification_link(new_user.pk)
         return new_user
@@ -46,11 +54,13 @@ class LogInSerializer(serializers.Serializer):
             ('flutter', 'Flutter'),
             ('django', 'Django')),
         allow_blank=True,
-        allow_null=True
+        allow_null=True,
+        required=False
     )
     requested_time_in_days = serializers.CharField(
         allow_blank=True,
-        allow_null=True
+        allow_null=True,
+        required=False,
     )
 
     class Meta:
@@ -140,4 +150,3 @@ class RevokeMobileAuthTokenSerializer(serializers.Serializer):
 
     class Meta:
         fields = ('token',)
-

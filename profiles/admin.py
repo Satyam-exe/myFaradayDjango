@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, HomeAddress, ProfileUpdates
+from .models import Profile, Location, ProfileUpdates
 
 
 class ProfileModelAdmin(admin.ModelAdmin):
@@ -14,11 +14,10 @@ class ProfileModelAdmin(admin.ModelAdmin):
     )
 
 
-class HomeAddressModelAdmin(admin.ModelAdmin):
+class LocationModelAdmin(admin.ModelAdmin):
     list_display = (
         'user_id',
-        'address1',
-        'address2',
+        'address',
         'city',
         'state',
         'pincode',
@@ -39,4 +38,4 @@ class ProfileUpdateModelAdmin(admin.ModelAdmin):
 
 admin.site.register(Profile, ProfileModelAdmin)
 admin.site.register(ProfileUpdates, ProfileUpdateModelAdmin)
-admin.site.register(HomeAddress, HomeAddressModelAdmin)
+admin.site.register(Location, LocationModelAdmin)

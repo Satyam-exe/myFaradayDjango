@@ -1,3 +1,6 @@
+import PIL.Image
+import requests
+
 from authentication.models import CustomUser
 from django.utils.translation import gettext_lazy as _
 from django.db import models
@@ -18,7 +21,7 @@ class Profile(models.Model):
     phone_number = models.CharField(max_length=15, unique=True, verbose_name=_('Phone Number'))
     date_of_birth = models.DateField(verbose_name=_('Date of Birth'), null=True, blank=True)
     gender = models.CharField(max_length=1, verbose_name=_('Gender'), choices=GENDER_CHOICES, null=True, blank=True)
-    profile_picture = models.ImageField(verbose_name=_('Profile Picture'), null=True, blank=True)
+    profile_picture = models.ImageField(verbose_name=_('Profile Picture'), upload_to=f'profile-pictures/')
 
     class Meta:
         verbose_name = 'User Profile'
@@ -66,11 +69,10 @@ STATE_CHOICES = (
 )
 
 
-class HomeAddress(models.Model):
+class Location(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE, verbose_name=_('User'))
     created_at = models.DateTimeField(verbose_name=_('Created At'))
-    address1 = models.CharField(max_length=50, verbose_name=_('Address 1'))
-    address2 = models.CharField(max_length=50, verbose_name=_('Address 2'))
+    address = models.CharField(max_length=100, verbose_name=_('Address'))
     city = models.CharField(max_length=50, verbose_name=_('City'))
     pincode = models.CharField(max_length=6, verbose_name=_('Postal Code'))
     state = models.CharField(max_length=2, verbose_name=_('State'), choices=STATE_CHOICES)

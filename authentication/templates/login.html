@@ -6,6 +6,16 @@
 
 {% block head_title %}Login{% endblock %}
 
+{% block extra_head %}
+<style>
+    @media (min-width: 600px) {
+        .log-in-form {
+            width: 500px;
+        }
+    }
+</style>
+{% endblock extra_head %}
+
 {% block body %}
 
     {% if messages %}
@@ -20,8 +30,8 @@
 
     {% block content %}
 
-        <div class="d-flex align-items-center justify-content-center p-100" style="height:90vh;">
-             <form method="POST" class="bg-light p-3 border border-dark rounded w-25">
+        <div class="d-flex align-items-center justify-content-center" style="height:90vh;">
+             <form method="POST" class="bg-light p-3 border border-dark rounded log-in-form">
                 {% csrf_token %}
                  <h1 class="text-center"><b>Log In</b></h1>
                       {{ form.email|as_crispy_field }}

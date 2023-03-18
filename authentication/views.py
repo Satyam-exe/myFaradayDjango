@@ -1,11 +1,11 @@
 import requests
 from django.contrib import messages
-from django.contrib.auth import logout, login, authenticate
+from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
-from rest_framework import status
+from django.utils.html import format_html
 
-from api import serializers
+from api.authentication import serializers
 from . import forms
 from .functions import verify_code
 from .models import CustomUser
@@ -17,7 +17,10 @@ from .models import CustomUser
 def sign_up_view(request):
     if request.method == 'POST':
         form = forms.SignUpForm(request.POST)
+        print('method is post')
+        print(form.data)
         if form.is_valid():
+            print('form is valid')
             form_data = {
                 'first_name': form.cleaned_data.get('first_name'),
                 'last_name': form.cleaned_data.get('last_name'),
@@ -28,17 +31,30 @@ def sign_up_view(request):
             }
             serializer = serializers.SignUpSerializer(data=form_data)
             if serializer.is_valid():
+                print('serializer is valid')
                 serializer_data = serializer.validated_data
-                url = 'http://localhost:8000/api/auth/signup/'
+                url = 'http://localhost:8000/api/auth/users/'
                 response = requests.post(url=url, data=serializer_data)
                 if response.status_code == 201:
                     return redirect('signup-success')
                 elif response.status_code == 500:
                     messages.error(request, 'Internal Server Error. Please Try Again.')
                 elif response.status_code == 409:
+                    error_message = response.json().get('error').get('message')
+                    if error_message == 'EMAIL_ALREADY_IN_USE':
+                        messages.error(request, 'Email is already in use.')
+                    elif error_message == 'PHONE_NUMBER_ALREADY_IN_USE':
+                        messages.error(request, 'Phone number is already in use.')
+                    elif error_message == 'BOTH_IDENTIFIERS_ALREADY_IN_USER':
+                        messages.error(request, 'Both email and phone number are already in use')
                     messages.error(request, 'Conflicting Request. Please Try Again.')
+                elif response.status_code == 406:
+                    print(response.json().get('error').get('message'))
+                    messages.error(request, 'Weak Password. Please Choose a Stronger One.')
                 else:
                     messages.error(request, 'Something Went Wrong. Please Try Again')
+        else:
+            print(form.errors)
     else:
         form = forms.SignUpForm()
     return render(request, 'signup.html', {'form': form})
@@ -56,19 +72,22 @@ def sign_up_success_view(request):
 def log_in_view(request):
     if request.method == 'POST':
         form = forms.LogInForm(request.POST)
+        print('method post')
         if form.is_valid():
+            print('form valid')
             serializer = serializers.LogInSerializer(data=form.cleaned_data)
             if serializer.is_valid():
+                print('serializer valid')
                 data = serializer.validated_data
                 url = 'http://localhost:8000/api/auth/login/'
                 response = requests.post(url=url, data=data)
                 if response.status_code == 200:
-                    login(request, CustomUser.objects.get(pk=response.json().get('user').get('id')))
+                    login(request, CustomUser.objects.get(pk=response.json().get('uid')))
                     return redirect('home')
-                elif response.status_code == 400:
+                elif response.status_code == 404:
                     messages.error(request, 'Invalid Credentials. Please Try Again.')
                 elif response.status_code == 401:
-                    messages.error(request, 'Your email is not verified. Please verify before logging in.')
+                    messages.error(request, format_html('Your email is not verified. Please verify before logging in. <button type="button">Click here<button> to resend verification email.'))
                 elif response.status_code == 500:
                     messages.error(request, 'Internal Server Error. Please Try Again.')
                 elif response.status_code == 409:

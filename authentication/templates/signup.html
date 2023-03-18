@@ -15,8 +15,8 @@
     {% endfor %}
     {% endif %}
     {% block content %}
-        <div class="d-flex align-items-center justify-content-center p-5 bg-" style="height:90vh;">
-             <form method="POST" class="bg-light p-3 border border-dark rounded">
+        <div class="d-flex align-items-center justify-content-center p-5" style="height:90vh;">
+             <form class="bg-light p-3 border border-dark rounded" method="POST">
                 {% csrf_token %}
                  <h1 class="text-center"><b>Sign Up</b></h1>
                 <div class="row">

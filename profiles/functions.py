@@ -1,10 +1,16 @@
 import datetime
+import random
+from io import BytesIO
 
 import pytz
+import requests
+from PIL import Image
+from django.core.files.base import ContentFile
+from django.core.files.images import ImageFile
 
 from authentication.models import CustomUser
 
-from .models import Profile, ProfileUpdates, HomeAddress
+from .models import Profile, ProfileUpdates, Location
 
 
 def update_profile(
@@ -15,8 +21,7 @@ def update_profile(
         phone_number=None,
         date_of_birth=None,
         gender=None,
-        address1=None,
-        address2=None,
+        new_address=None,
         city=None,
         pincode=None,
         state=None,
@@ -110,36 +115,22 @@ def update_profile(
             )
             new_update.save()
             updates += 1
-        if address1:
-            address = HomeAddress.objects.get(pk=uid)
+        if new_address:
+            address = Location.objects.get(pk=uid)
             old_value = address.address1
-            address.address1 = address1
+            address.address = new_address
             address.save()
             new_update = ProfileUpdates(
                 user=address.user,
-                update_type='address1',
+                update_type='address',
                 updated_from=old_value,
-                updated_to=address1,
-                updated_at=datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
-            )
-            new_update.save()
-            updates += 1
-        if address2:
-            address = HomeAddress.objects.get(pk=uid)
-            old_value = address.address2
-            address.address2 = address2
-            address.save()
-            new_update = ProfileUpdates(
-                user=address.user,
-                update_type='address2',
-                updated_from=old_value,
-                updated_to=address2,
+                updated_to=new_address,
                 updated_at=datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
             )
             new_update.save()
             updates += 1
         if city:
-            address = HomeAddress.objects.get(pk=uid)
+            address = Location.objects.get(pk=uid)
             old_value = address.city
             address.city = city
             address.save()
@@ -153,7 +144,7 @@ def update_profile(
             new_update.save()
             updates += 1
         if pincode:
-            address = HomeAddress.objects.get(pk=uid)
+            address = Location.objects.get(pk=uid)
             old_value = address.pincode
             address.pincode = pincode
             address.save()
@@ -167,7 +158,7 @@ def update_profile(
             new_update.save()
             updates += 1
         if state:
-            address = HomeAddress.objects.get(pk=uid)
+            address = Location.objects.get(pk=uid)
             old_value = address.state
             address.state = state
             address.save()
@@ -181,7 +172,7 @@ def update_profile(
             new_update.save()
             updates += 1
         if latitude:
-            address = HomeAddress.objects.get(pk=uid)
+            address = Location.objects.get(pk=uid)
             old_value = address.latitude
             address.latitude = latitude
             address.save()
@@ -195,7 +186,7 @@ def update_profile(
             new_update.save()
             updates += 1
         if longitude:
-            address = HomeAddress.objects.get(pk=uid)
+            address = Location.objects.get(pk=uid)
             old_value = address.longitude
             address.longitude = longitude
             address.save()
@@ -230,3 +221,19 @@ def update_profile(
         return False
     except Profile.DoesNotExist:
         return False
+
+
+def generate_default_profile_picture_content_file(user: CustomUser):
+    image_url = f"https://ui-avatars.com/api/?background=random&name={user.first_name}+{user.last_name}/"
+
+    response = requests.get(image_url, stream=True)
+    response.raise_for_status()
+
+    image = Image.open(BytesIO(response.content)).convert('RGB')
+
+    # Convert the image to a JPEG format and save it to a memory buffer
+    image_buffer = BytesIO()
+    image.save(image_buffer, format='JPEG')
+    image_buffer.seek(0)
+
+    return ContentFile(image_buffer.read())

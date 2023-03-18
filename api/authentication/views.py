@@ -1,98 +1,22 @@
 import datetime
-
 import django.db
 import pytz
-import rest_framework.generics
-from django.contrib.auth import authenticate, login
+
+from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
+from rest_framework import generics
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 
 from authentication.functions import verify_code, send_confirm_password_reset_link, send_email_verification_link, \
     generate_mobile_auth_token, verify_mobile_auth_token
 from authentication.models import CustomUser, MobileAuthToken
-from .serializers import SignUpSerializer, LogInSerializer, CustomUserSerializer, \
-    ConfirmPasswordResetSerializer, ResetPasswordSerializer, EmailVerificationSerializer, MobileAuthTokenSerializer, \
+from api.authentication.serializers import SignUpSerializer, LogInSerializer, CustomUserSerializer, \
+    ConfirmPasswordResetSerializer, ResetPasswordSerializer, EmailVerificationSerializer, \
     VerifyMobileAuthTokenSerializer, RevokeMobileAuthTokenSerializer
-
-
-class SignUpAPIView(APIView):
-
-    def post(self, request):
-        try:
-            serializer = SignUpSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-
-            email_conflict = CustomUser.objects.filter(email=serializer.validated_data.get('email')).exists()
-            phone_conflict = CustomUser.objects.filter(phone_number=serializer.validated_data.get('phone_number')).exists()
-
-            if email_conflict and phone_conflict:
-                message = 'BOTH_IDENTIFIERS_ALREADY_IN_USE'
-            elif email_conflict:
-                message = 'EMAIL_ALREADY_IN_USE'
-            elif phone_conflict:
-                message = 'PHONE_NUMBER_ALREADY_IN_USE'
-            else:
-                new_user = serializer.create(validated_data=serializer.validated_data)
-                return Response(
-                    {
-                        'uid': new_user.pk,
-                        'email': new_user.email,
-                        'phone_number': new_user.phone_number,
-                        'first_name': new_user.first_name,
-                        'last_name': new_user.last_name,
-                        'is_superuser': new_user.is_superuser,
-                        'is_staff': new_user.is_staff,
-                        'is_email_verified': new_user.is_email_verified,
-                    }, status=status.HTTP_201_CREATED
-                )
-
-            return Response(
-                {
-                    'error': {
-                        'message': message,
-                    }
-                }, status=status.HTTP_409_CONFLICT
-            )
-        except django.db.IntegrityError as e:
-            return Response(
-                {
-                    'error': {
-                        'message': str(e),
-                    }
-                }, status=status.HTTP_409_CONFLICT
-            )
-        except ValidationError as e:
-            try:
-                validate_password(request.data.get('password'))
-            except ValidationError:
-                return Response(
-                    {
-                        'error': {
-                            'message': 'WEAK_PASSWORD',
-                        }
-                    }, status=status.HTTP_400_BAD_REQUEST
-                )
-            else:
-                return Response(
-                    {
-                        'error': {
-                            'message': str(e),
-                        }
-                    }, status=status.HTTP_400_BAD_REQUEST
-                )
-        except django.db.DatabaseError as e:
-            return Response(
-                {
-                    'error': {
-                        'message': str(e)
-                    }
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
 
 
 class LogInAPIView(APIView):
@@ -108,7 +32,7 @@ class LogInAPIView(APIView):
                 user = authenticate(request=request, email=email, password=password)
                 if user:
                     if user.is_email_verified:
-                        if request_platform.lower() == 'flutter' and requested_time_in_days:
+                        if request_platform == 'flutter' and requested_time_in_days:
                             token = generate_mobile_auth_token(
                                 uid=user.pk,
                                 requested_time_in_days=requested_time_in_days
@@ -139,7 +63,7 @@ class LogInAPIView(APIView):
                             'error': {
                                 'message': 'INVALID_CREDENTIALS'
                             }
-                        }, status=status.HTTP_400_BAD_REQUEST
+                        }, status=status.HTTP_404_NOT_FOUND
                     )
             except django.db.IntegrityError as e:
                 return Response(
@@ -336,12 +260,82 @@ class ConfirmPasswordResetAPIView(APIView):
                 )
 
 
-class UserListAPIView(rest_framework.generics.ListAPIView):
+class UserAPIView(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = SignUpSerializer(data=request.data)
+            if serializer.is_valid():
+                email_conflict = CustomUser.objects.filter(email=serializer.validated_data.get('email')).exists()
+                phone_conflict = CustomUser.objects.filter(
+                    phone_number=serializer.validated_data.get('phone_number')).exists()
+                if email_conflict and phone_conflict:
+                    message = 'BOTH_IDENTIFIERS_ALREADY_IN_USE'
+                elif email_conflict:
+                    message = 'EMAIL_ALREADY_IN_USE'
+                elif phone_conflict:
+                    message = 'PHONE_NUMBER_ALREADY_IN_USE'
+                else:
+                    message = None
+                if message is not None:
+                    return Response(
+                        {
+                            'error': {
+                                'message': message,
+                            }
+                        }, status=status.HTTP_409_CONFLICT
+                    )
+                validate_password(password=serializer.validated_data.get('password'))
+                new_user = serializer.create(validated_data=serializer.validated_data)
+                return Response(
+                    {
+                        'uid': new_user.pk,
+                        'email': new_user.email,
+                        'phone_number': new_user.phone_number,
+                        'first_name': new_user.first_name,
+                        'last_name': new_user.last_name,
+                        'is_superuser': new_user.is_superuser,
+                        'is_staff': new_user.is_staff,
+                        'is_email_verified': new_user.is_email_verified,
+                    }, status=status.HTTP_201_CREATED
+                )
+        except ValidationError:
+            return Response(
+                {
+                    'error': {
+                        'message': 'WEAK_PASSWORD',
+                    }
+                }, status=status.HTTP_406_NOT_ACCEPTABLE
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except ValidationError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class UserRetrieveAPIView(APIView):
@@ -350,52 +344,116 @@ class UserRetrieveAPIView(APIView):
         try:
             serializer = CustomUserSerializer(CustomUser.objects.get(pk=pk))
             return Response(serializer.data)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def put(self, request, pk, **kwargs):
         try:
             serializer = CustomUserSerializer(CustomUser.objects.get(pk=pk).update(**kwargs))
             return Response(serializer.data)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def patch(self, request, pk, **kwargs):
         try:
             serializer = CustomUserSerializer(CustomUser.objects.get(pk=pk).update(**kwargs))
             return Response(serializer.data)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def delete(self, request, pk):
         try:
             CustomUser.objects.get(pk=pk).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
@@ -405,52 +463,116 @@ class UserRetrieveWithEmailAPIView(APIView):
         try:
             serializer = CustomUserSerializer(CustomUser.objects.get(email=email))
             return Response(serializer.data)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def put(self, request, email, **kwargs):
         try:
             serializer = CustomUserSerializer(CustomUser.objects.get(email=email).update(**kwargs))
             return Response(serializer.data)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def patch(self, request, email, **kwargs):
         try:
             serializer = CustomUserSerializer(CustomUser.objects.get(email=email).update(**kwargs))
             return Response(serializer.data)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def delete(self, request, email):
         try:
             CustomUser.objects.get(email=email).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
@@ -460,52 +582,116 @@ class UserRetrieveWithPhoneNumberAPIView(APIView):
         try:
             serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number))
             return Response(serializer.data)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def put(self, request, phone_number, **kwargs):
         try:
             serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number).update(**kwargs))
             return Response(serializer.data)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def patch(self, request, phone_number, **kwargs):
         try:
             serializer = CustomUserSerializer(CustomUser.objects.get(phone_number=phone_number).update(**kwargs))
             return Response(serializer.data)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def delete(self, request, phone_number):
         try:
             CustomUser.objects.get(phone_number=phone_number).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except:
+        except CustomUser.DoesNotExist:
             return Response(
                 {
                     'error': {
                         'message': 'USER_NOT_FOUND'
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        except django.db.IntegrityError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e),
+                    }
+                }, status=status.HTTP_409_CONFLICT
+            )
+        except django.db.DatabaseError as e:
+            return Response(
+                {
+                    'error': {
+                        'message': str(e)
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
@@ -529,7 +715,7 @@ class SendEmailVerificationAPIView(APIView):
                     'error': {
                         'message': 'USER_NOT_FOUND',
                     }
-                }, status=status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_404_NOT_FOUND
             )
         except django.db.IntegrityError as e:
             return Response(
@@ -624,7 +810,7 @@ class MobileAuthTokenAPIView(APIView):
                     {
                         'token': token_object.pk,
                         'is_revoked': token_object.is_revoked
-                    },status=status.HTTP_200_OK
+                    }, status=status.HTTP_200_OK
                 )
             except MobileAuthToken.DoesNotExist:
                 return Response(
@@ -632,7 +818,7 @@ class MobileAuthTokenAPIView(APIView):
                         'error': {
                             'message': 'INVALID_TOKEN'
                         }
-                    },status=status.HTTP_404_NOT_FOUND)
+                    }, status=status.HTTP_404_NOT_FOUND)
             except django.db.IntegrityError as e:
                 return Response(
                     {
@@ -657,4 +843,3 @@ class MobileAuthTokenAPIView(APIView):
                     }
                 }, status=status.HTTP_400_BAD_REQUEST
             )
-
