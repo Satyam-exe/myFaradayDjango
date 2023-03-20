@@ -4,7 +4,6 @@ import string
 import pytz
 from django.conf import settings
 from django.core.mail import send_mail
-
 from authentication.models import CustomUser, URLCode, MobileAuthToken
 
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser
+from .models import CustomUser, Worker
 
 
 class CustomUserAdmin(admin.ModelAdmin):
@@ -19,4 +19,18 @@ class CustomUserAdmin(admin.ModelAdmin):
     )
 
 
+class WorkerAdmin(admin.ModelAdmin):
+    list_display = (
+        'wid',
+        'user',
+        'aadhar_number',
+        'pan',
+        'requests_completed',
+        'rating',
+        'worker_type',
+        'is_available',
+    )
+
+
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(Worker, WorkerAdmin)

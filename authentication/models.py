@@ -1,8 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from .managers import CustomUserManager
 from django.utils.translation import gettext_lazy as _
-
 
 SIGNUP_PLATFORM_CHOICES = (
     ('django', 'Django'),
@@ -18,7 +18,8 @@ class CustomUser(AbstractBaseUser):
     phone_number = models.CharField(max_length=15, unique=True, verbose_name=_('Phone Number'))
     is_email_verified = models.BooleanField(verbose_name=_('Is Email Verified'), default=False)
     signed_up = models.DateTimeField(verbose_name=_('Signed Up'))
-    signup_platform = models.CharField(max_length=10, choices=SIGNUP_PLATFORM_CHOICES, verbose_name=_('Signup Platform'))
+    signup_platform = models.CharField(max_length=10, choices=SIGNUP_PLATFORM_CHOICES,
+                                       verbose_name=_('Signup Platform'))
     last_login = models.DateTimeField(verbose_name=_('Last Login'), blank=True, null=True)
     last_activity = models.DateTimeField(verbose_name=_('Last Activity'), blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -58,3 +59,55 @@ class MobileAuthToken(models.Model):
     expires_at = models.DateTimeField(verbose_name=_('Expires At'))
     is_revoked = models.BooleanField(verbose_name=_('Is Revoked'))
     last_used = models.DateTimeField(verbose_name=_('Last Used'))
+
+
+class Worker(models.Model):
+    wid = models.BigAutoField(
+        primary_key=True,
+        db_column='wid',
+        verbose_name=_('Worker ID')
+    )
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    aadhar_number = models.PositiveBigIntegerField(
+        verbose_name=_('Aadhar Number'),
+        validators=[
+            MinLengthValidator(12),
+            MaxLengthValidator(12)
+        ],
+        unique=True
+    )
+    pan = models.CharField(
+        verbose_name=_('Aadhar Number'),
+        max_length=10,
+        validators=[MinLengthValidator(10)],
+        unique=True
+    )
+    requests_completed = models.IntegerField(
+        verbose_name=_('Requests Completed'),
+        default=0
+    )
+    rating = models.DecimalField(
+        verbose_name=_('Rating'),
+        max_digits=3,
+        decimal_places=2,
+        default=0,
+    )
+    worker_type = models.CharField(
+        max_length=15,
+        choices=(
+            ('electrician', 'electrician'),
+            ('plumber', 'plumber')
+        )
+    )
+    is_available = models.BooleanField(
+        verbose_name=_('Is Available'),
+        default=False
+    )
+
+    class Meta:
+        verbose_name = 'Worker'
+        verbose_name_plural = 'Workers'

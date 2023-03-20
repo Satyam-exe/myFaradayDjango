@@ -1,25 +1,34 @@
 from django.db import models
-from profiles.models import Profile
+from authentication.models import CustomUser, Worker
 from django.utils.translation import gettext_lazy as _
 
+from profiles.models import Location
 
-class RequestModel(models.Model):
-    request_id = models.IntegerField(verbose_name=_('Request ID'), primary_key=True, editable=False)
-    user = models.ForeignKey(Profile, on_delete=models.SET_NULL,
-                             verbose_name=_('User ID'), null=True)
+
+class Request(models.Model):
+    request_id = models.IntegerField(verbose_name=_('Request ID'), primary_key=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, verbose_name=_('User ID'), null=True)
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, verbose_name=_('Location ID'))
     time_of_request = models.DateTimeField(verbose_name=_('Time of Request'))
-    name = models.CharField(verbose_name=_('Full Name'), max_length=100)
-    address = models.CharField(max_length=100, verbose_name=_('Address'))
-    city = models.CharField(max_length=50, verbose_name=_('City'))
-    state = models.CharField(max_length=50, verbose_name=_('State/Territory'))
-    country = models.CharField(max_length=2, verbose_name=_('Country'))
-    pincode = models.CharField(verbose_name=_('Postal Code'), max_length=6)
-    email = models.EmailField(unique=True, verbose_name=_('Email Address'))
-    phone_number = models.CharField(max_length=15, unique=True, verbose_name=_('Phone Number'))
-    longitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Longitude'), null=True,
-                                    blank=True)
-    latitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Latitude'), null=True, blank=True)
+    is_emergency = models.BooleanField(verbose_name=_('Is Emergency'), default=False)
+    issue = models.TextField(verbose_name=_('Issue'))
+    is_forwarded = models.BooleanField(verbose_name=_('Is Forwarded'), default=False)
+    forwarded_to = models.ForeignKey(Worker, on_delete=models.SET_NULL, verbose_name=_('Worker ID'), null=True)
+    is_closed = models.BooleanField(verbose_name=_('Is Closed'), default=False)
 
     class Meta:
         verbose_name = 'Request'
         verbose_name_plural = 'Requests'
+
+
+class Feedback(models.Model):
+    request = models.OneToOneField(Request, verbose_name=_('Request ID'), on_delete=models.CASCADE,
+                                   primary_key=True)
+    rating = models.IntegerField(verbose_name=_('Rating'), choices=((1, 1), (2, 2), (3, 3), (4, 4), (5, 5)))
+    likely_to_recommend = models.IntegerField(verbose_name=_('Likely to Recommend'), choices=((1, 1), (2, 2), (3, 3), (4, 4), (5, 5)))
+    feedback = models.TextField(verbose_name=_('Feedback'), blank=True, null=True)
+    time_of_feedback = models.DateTimeField(verbose_name=_('Time of Feedback'))
+
+    class Meta:
+        verbose_name = 'Feedback'
+        verbose_name_plural = 'Feedbacks'

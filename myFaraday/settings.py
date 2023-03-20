@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'pages',
     'request',
     'profiles',
+    'payment',
 ]
 
 MIDDLEWARE = [

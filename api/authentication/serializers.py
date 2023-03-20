@@ -3,7 +3,7 @@ import pytz
 from django.db import transaction
 from rest_framework import serializers
 from authentication.functions import send_email_verification_link
-from authentication.models import CustomUser, URLCode, MobileAuthToken
+from authentication.models import CustomUser, URLCode, MobileAuthToken, Worker
 from profiles.functions import generate_default_profile_picture_content_file
 from profiles.models import Profile
 
@@ -11,6 +11,12 @@ from profiles.models import Profile
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
+        fields = '__all__'
+
+
+class WorkerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Worker
         fields = '__all__'
 
 

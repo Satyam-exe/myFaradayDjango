@@ -224,7 +224,7 @@ def update_profile(
 
 
 def generate_default_profile_picture_content_file(user: CustomUser):
-    image_url = f"https://ui-avatars.com/api/?background=random&name={user.first_name}+{user.last_name}/"
+    image_url = f"https://ui-avatars.com/api/?background=random&size=512&name={user.first_name}+{user.last_name}/"
 
     response = requests.get(image_url, stream=True)
     response.raise_for_status()

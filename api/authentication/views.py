@@ -299,6 +299,7 @@ class UserAPIView(generics.ListCreateAPIView):
                         'phone_number': new_user.phone_number,
                         'first_name': new_user.first_name,
                         'last_name': new_user.last_name,
+                        'signed_up': new_user.signed_up,
                         'is_superuser': new_user.is_superuser,
                         'is_staff': new_user.is_staff,
                         'is_email_verified': new_user.is_email_verified,
@@ -319,14 +320,6 @@ class UserAPIView(generics.ListCreateAPIView):
                         'message': str(e),
                     }
                 }, status=status.HTTP_409_CONFLICT
-            )
-        except ValidationError as e:
-            return Response(
-                {
-                    'error': {
-                        'message': str(e),
-                    }
-                }, status=status.HTTP_400_BAD_REQUEST
             )
         except django.db.DatabaseError as e:
             return Response(
