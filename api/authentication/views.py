@@ -20,7 +20,6 @@ from api.authentication.serializers import SignUpSerializer, LogInSerializer, Cu
 
 
 class LogInAPIView(APIView):
-
     def post(self, request):
         serializer = LogInSerializer(data=request.data)
         if serializer.is_valid():

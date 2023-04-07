@@ -1,12 +1,10 @@
 import datetime
-import random
 from io import BytesIO
 
 import pytz
 import requests
 from PIL import Image
 from django.core.files.base import ContentFile
-from django.core.files.images import ImageFile
 
 from authentication.models import CustomUser
 
@@ -223,7 +221,7 @@ def update_profile(
         return False
 
 
-def generate_default_profile_picture_content_file(user: CustomUser):
+def generate_default_profile_picture_content_file(user):
     image_url = f"https://ui-avatars.com/api/?background=random&size=512&name={user.first_name}+{user.last_name}/"
 
     response = requests.get(image_url, stream=True)
@@ -237,3 +235,5 @@ def generate_default_profile_picture_content_file(user: CustomUser):
     image_buffer.seek(0)
 
     return ContentFile(image_buffer.read())
+
+

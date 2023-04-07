@@ -1,15 +1,15 @@
 from rest_framework import serializers
 
-from request.models import RequestModel, FeedbackModel
+from request.models import Request, Feedback
 
 
 class RequestSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RequestModel
+        model = Request
         fields = '__all__'
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
-        model = FeedbackModel
+        model = Feedback
         fields = '__all__'

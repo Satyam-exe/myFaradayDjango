@@ -1,8 +1,9 @@
 from django.db import models
-from authentication.models import CustomUser, Worker
+from authentication.models import CustomUser
 from django.utils.translation import gettext_lazy as _
 
 from profiles.models import Location
+from worker.models import Worker
 
 
 class Request(models.Model):

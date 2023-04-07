@@ -1,5 +1,4 @@
-import PIL.Image
-import requests
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 
 from authentication.models import CustomUser
 from django.utils.translation import gettext_lazy as _
@@ -74,7 +73,8 @@ class Location(models.Model):
     created_at = models.DateTimeField(verbose_name=_('Created At'))
     address = models.CharField(max_length=100, verbose_name=_('Address'))
     city = models.CharField(max_length=50, verbose_name=_('City'))
-    pincode = models.CharField(max_length=6, verbose_name=_('Postal Code'))
+    pincode = models.IntegerField(validators=[MaxLengthValidator(6), MinLengthValidator(6)],
+                                  verbose_name=_('Postal Code'))
     state = models.CharField(max_length=2, verbose_name=_('State'), choices=STATE_CHOICES)
     longitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Longitude'), null=True,
                                     blank=True)

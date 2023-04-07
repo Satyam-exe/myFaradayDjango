@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'request',
     'profiles',
     'payment',
+    'worker',
 ]
 
 MIDDLEWARE = [
@@ -93,12 +94,12 @@ WSGI_APPLICATION = 'myFaraday.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'myfaraday',
-        'USER': 'root',
-        'PASSWORD': os.environ.get('MYSQL_PASSWORD'),
+        'USER': 'postgres',
+        'PASSWORD': os.environ.get('PSQL_PASSWORD'),
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '5432',
         'TIME_ZONE': 'Asia/Kolkata'
     }
 }
