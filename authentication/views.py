@@ -17,10 +17,7 @@ from .models import CustomUser
 def sign_up_view(request):
     if request.method == 'POST':
         form = forms.SignUpForm(request.POST)
-        print('method is post')
-        print(form.data)
         if form.is_valid():
-            print('form is valid')
             form_data = {
                 'first_name': form.cleaned_data.get('first_name'),
                 'last_name': form.cleaned_data.get('last_name'),
@@ -31,7 +28,6 @@ def sign_up_view(request):
             }
             serializer = serializers.SignUpSerializer(data=form_data)
             if serializer.is_valid():
-                print('serializer is valid')
                 serializer_data = serializer.validated_data
                 url = 'http://localhost:8000/api/auth/users/'
                 response = requests.post(url=url, data=serializer_data)
@@ -49,12 +45,9 @@ def sign_up_view(request):
                         messages.error(request, 'Both email and phone number are already in use')
                     messages.error(request, 'Conflicting Request. Please Try Again.')
                 elif response.status_code == 406:
-                    print(response.json().get('error').get('message'))
                     messages.error(request, 'Weak Password. Please Choose a Stronger One.')
                 else:
                     messages.error(request, 'Something Went Wrong. Please Try Again')
-        else:
-            print(form.errors)
     else:
         form = forms.SignUpForm()
     return render(request, 'signup.html', {'form': form})
@@ -72,12 +65,9 @@ def sign_up_success_view(request):
 def log_in_view(request):
     if request.method == 'POST':
         form = forms.LogInForm(request.POST)
-        print('method post')
         if form.is_valid():
-            print('form valid')
             serializer = serializers.LogInSerializer(data=form.cleaned_data)
             if serializer.is_valid():
-                print('serializer valid')
                 data = serializer.validated_data
                 url = 'http://localhost:8000/api/auth/login/'
                 response = requests.post(url=url, data=data)
@@ -87,7 +77,7 @@ def log_in_view(request):
                 elif response.status_code == 404:
                     messages.error(request, 'Invalid Credentials. Please Try Again.')
                 elif response.status_code == 401:
-                    messages.error(request, format_html('Your email is not verified. Please verify before logging in. <button type="button">Click here<button> to resend verification email.'))
+                    messages.error(request, format_html('Your email is not verified. Please verify before logging in. <button type="button" style="background:none">Click here</button> to resend verification email.'))
                 elif response.status_code == 500:
                     messages.error(request, 'Internal Server Error. Please Try Again.')
                 elif response.status_code == 409:
