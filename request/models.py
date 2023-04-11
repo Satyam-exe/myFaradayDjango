@@ -55,20 +55,22 @@ INSTALLATION_OPTIONS = (
 )
 
 CONSULTATION_OPTIONS = (
-    ('General Inquiry', 'General Inquiry')
+    ('General Inquiry', 'General Inquiry'),
 )
+
+ALL_SERVICE_OPTIONS = REPAIR_OPTIONS + MAINTENANCE_OPTIONS + INSTALLATION_OPTIONS + CONSULTATION_OPTIONS
 
 
 class Request(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, verbose_name=_('User ID'), null=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, verbose_name=_('User'), null=True)
     service_needed = models.CharField(max_length=50, verbose_name=_('Service Needed'), choices=SERVICE_CHOICES)
-    appliance = models.CharField(max_length=100, verbose_name=_('Appliance'))
-    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, verbose_name=_('Location ID'))
+    appliance = models.CharField(max_length=100, verbose_name=_('Appliance'), choices=ALL_SERVICE_OPTIONS)
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, verbose_name=_('Location'))
     time_of_request = models.DateTimeField(verbose_name=_('Time of Request'))
     is_emergency = models.BooleanField(verbose_name=_('Is Emergency'), default=False)
     issue = models.TextField(verbose_name=_('Issue'))
     is_forwarded = models.BooleanField(verbose_name=_('Is Forwarded'), default=False)
-    forwarded_to = models.ForeignKey(Worker, on_delete=models.SET_NULL, verbose_name=_('Worker ID'), null=True)
+    forwarded_to = models.ForeignKey(Worker, on_delete=models.SET_NULL, verbose_name=_('Worker'), null=True, blank=True)
     is_closed = models.BooleanField(verbose_name=_('Is Closed'), default=False)
 
     class Meta:

@@ -1,5 +1,4 @@
 from django.contrib.auth.models import AbstractBaseUser
-from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from .managers import CustomUserManager
 from django.utils.translation import gettext_lazy as _
@@ -11,7 +10,7 @@ SIGNUP_PLATFORM_CHOICES = (
 
 
 class CustomUser(AbstractBaseUser):
-    uid = models.BigAutoField(primary_key=True, db_column='uid', verbose_name=_('User ID'))
+    uid = models.BigAutoField(primary_key=True, verbose_name=_('User ID'))
     email = models.EmailField(unique=True, verbose_name=_('Email Address'))
     first_name = models.CharField(max_length=30, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, verbose_name=_('Last Name'))

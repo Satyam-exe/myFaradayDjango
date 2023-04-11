@@ -1,4 +1,4 @@
-from django.core.validators import MaxLengthValidator, MinLengthValidator
+from django.core.validators import RegexValidator
 
 from authentication.models import CustomUser
 from django.utils.translation import gettext_lazy as _
@@ -73,7 +73,7 @@ class Location(models.Model):
     created_at = models.DateTimeField(verbose_name=_('Created At'))
     address = models.CharField(max_length=100, verbose_name=_('Address'))
     city = models.CharField(max_length=50, verbose_name=_('City'))
-    pincode = models.IntegerField(validators=[MaxLengthValidator(6), MinLengthValidator(6)],
+    pincode = models.IntegerField(validators=[RegexValidator('^[1-9]{1}[0-9]{2}\\s{0,1}[0-9]{3}$')],
                                   verbose_name=_('Postal Code'))
     state = models.CharField(max_length=2, verbose_name=_('State'), choices=STATE_CHOICES)
     longitude = models.DecimalField(max_digits=18, decimal_places=15, verbose_name=_('Longitude'), null=True,

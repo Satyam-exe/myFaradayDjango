@@ -1,24 +1,26 @@
 from django.contrib import admin
+from myFaraday.commons import linkify
 from .models import Request, Feedback
 
 
 class RequestModelAdmin(admin.ModelAdmin):
     list_display = (
-        'request_id',
-        'user',
-        'location',
+        'pk',
+        linkify(field_name='user'),
+        linkify(field_name='location'),
         'time_of_request',
         'is_emergency',
         'issue',
         'is_forwarded',
-        'forwarded_to',
+        linkify(field_name='forwarded_to'),
         'is_closed',
     )
 
 
 class FeedbackModelAdmin(admin.ModelAdmin):
     list_display = (
-        'request',
+        'pk',
+        linkify(field_name='request'),
         'rating',
         'likely_to_recommend',
         'feedback',

@@ -5,6 +5,7 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 
 from api.request import serializers
+from request.functions import assign_request_to_worker
 from request.models import Request
 
 
@@ -24,6 +25,7 @@ class RequestAPIView(ListCreateAPIView):
                     {
                         'request_id': new_request.id,
                         'user_id': new_request.user_id,
+                        'worker_assigned': assign_request_to_worker(request_id=new_request.pk, worker_type='electrician')
                     }, status=status.HTTP_201_CREATED
                 )
         except django.db.IntegrityError as e:

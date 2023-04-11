@@ -1,0 +1,18 @@
+### GET RequestAPIView
+GET http://localhost:8000/api/request/
+Accept: application/json
+
+### POST RequestAPIView
+POST http://localhost:8000/api/request/
+Accept: application/json
+
+{
+  "user": 1,
+  "service_needed": "Repair",
+  "appliance": "Wiring",
+  "location": 1,
+  "time_of_request": "2023-04-11 22:23:27+05:30",
+  "issue": "Nothing Numbe"
+}
+
+###

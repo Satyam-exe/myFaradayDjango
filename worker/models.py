@@ -1,4 +1,4 @@
-from django.core.validators import MinLengthValidator, MaxLengthValidator, RegexValidator
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -7,11 +7,6 @@ from authentication.models import CustomUser
 
 # Create your models here.
 class Worker(models.Model):
-    wid = models.BigAutoField(
-        primary_key=True,
-        db_column='wid',
-        verbose_name=_('Worker ID')
-    )
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.SET_NULL,
@@ -20,15 +15,14 @@ class Worker(models.Model):
     aadhar_number = models.PositiveBigIntegerField(
         verbose_name=_('Aadhar Number'),
         validators=[
-            MinLengthValidator(12),
-            MaxLengthValidator(12)
+            RegexValidator('^[0-9]{12}$')
         ],
         unique=True
     )
     pan = models.CharField(
-        verbose_name=_('Aadhar Number'),
+        verbose_name=_('Permanent Account Number'),
         max_length=10,
-        validators=[MinLengthValidator(10), RegexValidator(r'^[a-zA-z]{5}[0-9]{4}[a-zA-Z]{1}$')],
+        validators=[RegexValidator(r'^[a-zA-z]{5}[0-9]{4}[a-zA-Z]{1}$')],
         unique=True
     )
     requests_completed = models.IntegerField(
